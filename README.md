@@ -97,57 +97,55 @@ On first execution, the application automatically constructs `eudr.db` from `sch
 
 ---
 
-## 5. 5-Minute Viva Demo Script for the Teacher
+## 5. 3-Minute Demo Script for Teacher or Viva
 
-Follow this exact step-by-step walkthrough to showcase the database architecture and EUDR domain modeling during your project examination:
+Follow this simple, step-by-step walkthrough to explain the project in under 3 minutes:
 
-| Time | Stage | Action & What to Show |
+| Time | What to Click | What to Say (Simple Words) |
 |---|---|---|
-| **0:00 - 0:45** | **1. Schema & ER Model** | Navigate to **Database Architecture &rarr; Interactive ER Diagram**. Explain how the 18 tables achieve 3NF. Point out `PRAGMA foreign_keys = ON;`, composite keys, and how polygon vertices are normalized into `plot_polygon_points`. |
-| **0:45 - 1:30** | **2. Live Table Browser & Telemetry** | Open **Live Table Browser**. Switch between `batches`, `plots`, and `organizations`. Open the **"Under the Hood"** drawer to show the teacher the raw parameterized SQL queries, execution latency (ms), and server telemetry on every click. |
-| **1:30 - 2:30** | **3. Recursive Lineage Trace** | Open **Batches & Traceability**. Select batch `NL-CHOC-2026-0044` (EU Chocolate). Click **Trace**. Show the backward recursive CTE tree resolving through Dutch Cocoa Trading &rarr; Olam Processing &rarr; Kuapa Kokoo Co-op &rarr; 3 farm plots in Ghana with 6-decimal coordinates. Click **Print Certificate** to show the verification certificate. |
-| **2:30 - 3:30** | **4. Constraint & Trigger Safeguards** | Open **Plots & Geospatial Map**. Try creating a plot with area `12.0` ha but setting geo_type to `POINT`. Show the DB trigger `trg_validate_plot_polygon_req_insert` aborting the query. Then show batch `BR-SOY-FAIL-2026-09` (linked to deforested plot #9); show how the trigger blocks promoting it to `Compliant`. |
-| **3:30 - 4:15** | **5. SQL Query Console & Recursive CTE** | Navigate to **SQL Query Console**. Select the saved query *"1. Recursive CTE Lineage Trace"*. Click **Run SQL Query**. Show the live execution time and switch to the **EXPLAIN QUERY PLAN** tab to explain SQLite's query optimizer steps. |
-| **4:15 - 5:00** | **6. Audit Log & Due Diligence (DDS)** | Navigate to **Audit Log Timeline**. Show the trigger-generated JSON diffs (`old_value` &rarr; `new_value`). Finally, navigate to **Risk & Due Diligence** and generate a new EU DDS statement for compliant batches with an auto-generated reference number (e.g. `26EU...`). |
+| **0:00 - 0:45** | **Home** &rarr; Point to the 5-step flow | *"EU law (EUDR) says products like cocoa, coffee, and palm oil must not come from land deforested after 31 Dec 2020. Our system tracks goods in 5 steps: Companies, Farm Plots, Batches, Safety Check, and EU Reports."* |
+| **0:45 - 1:15** | Click **Track a Product** in the sidebar | *"Here is our hero feature. Pick chocolate batch `NL-CHOC-2026-0044` and click 'Trace back to farms'. The database uses a recursive query to walk backwards through 5 companies all the way to 3 farm plots in Ghana with exact GPS locations."* |
+| **1:15 - 1:45** | Click **2. Farm Plots & Map** | *"On the map, green plots are safe and red plots are deforested. Plots bigger than 4 hectares automatically require a polygon boundary fence. Notice the Pelalawan plot shows 'Waiting' because its land papers are unverified."* |
+| **1:45 - 2:15** | Click **Automatic Rules** &rarr; Click **Try It** on Rule 1 | *"We don't rely only on code; the SQLite database has triggers. If I try to approve a batch from a deforested plot, the database BLOCKS it automatically with an ABORT error. It's impossible to smuggle illegal goods."* |
+| **2:15 - 2:45** | Click **Ask the Database (SQL)** &rarr; Click Question 1 | *"For the viva, we have 10 ready-made plain English questions. Click 'Which farms supplied chocolate batch?' and the database runs the recursive SQL query and explains the results in 1 second."* |
+| **2:45 - 3:00** | Click **Start Demo Tour** (yellow button) | *"Anyone can click this yellow button to see a 7-step guided tour of everything the teacher needs to evaluate."* |
 
 ---
 
-## 6. 10 Likely Viva Questions & Answers
+## 6. 10 Simple Viva Questions & 2-Line Answers
 
-### Q1: Why is this database design in 3rd Normal Form (3NF)?
-> **Answer**: 
-> 1. **1NF**: All attributes are atomic (polygon vertices are normalized in `plot_polygon_points`, not comma strings).
-> 2. **2NF**: No partial functional dependencies; non-key attributes in junction tables (`batch_plot_sources`, `batch_lineage`, `dds_batches`) depend on the whole composite primary key.
-> 3. **3NF**: No transitive dependencies. Reference attributes like country risk levels and commodity descriptions reside exclusively in `countries` and `commodities` tables, linked via foreign keys.
+### Q1: What does EUDR require and what is the cut-off date?
+> **Answer**: EUDR requires companies to prove products did not cause deforestation. The legal cut-off date is **31 December 2020**; any land cleared after this date is illegal to import from.
 
-### Q2: How does the system handle multi-tier supply chain lineage?
-> **Answer**: We implemented a recursive self-referencing many-to-many relationship via the `batch_lineage (parent_batch_id, child_batch_id, quantity_kg)` table. Lineage resolution is executed using a **Recursive Common Table Expression (WITH RECURSIVE CTE)**, enabling arbitrary depth tree traversal in both backward (origin farm discovery) and forward (product recall) directions.
+### Q2: Why is the database designed in 3rd Normal Form (3NF)?
+> **Answer**: We separated data into 18 tables so details like company names and country risk are stored only once. This eliminates duplicate errors and stops update anomalies.
 
-### Q3: How is the EUDR cut-off date (31 Dec 2020) enforced at the database level?
-> **Answer**: Through SQLite triggers (`trg_validate_batch_compliance_promotion`). Before a batch status can be updated to `'Compliant'`, the trigger executes an `EXISTS` subquery verifying that none of the connected origin plots in `plot_production_records` have `deforestation_free = 0` or production on deforested land post-2020. If violated, it calls `RAISE(ABORT, ...)` which rolls back the transaction.
+### Q3: How do you trace a chocolate bar back to the exact farm?
+> **Answer**: We use a **Recursive CTE query** (`WITH RECURSIVE`) that follows parent-child batch links step-by-step through the `batch_lineage` table all the way to the origin farm plots.
 
-### Q4: Why did you use Raw SQL instead of an ORM?
-> **Answer**: Raw parameterized SQL exposes the underlying relational algebra directly, allows the use of database-specific advanced features (recursive CTEs, complex trigger validations, `PRAGMA` schema introspection, and `EXPLAIN QUERY PLAN`), and guarantees full visibility into query performance without ORM abstraction overhead.
+### Q4: How does the database stop someone from approving an illegal batch?
+> **Answer**: An automatic `BEFORE UPDATE` trigger on the `batches` table checks all source plots. If any plot had tree loss after 2020 or lacks verified papers, the database aborts the update.
 
-### Q5: How is SQL injection prevented?
-> **Answer**: All SQL statements use parameterized placeholders (`?`) where user inputs are passed as parameter tuples to SQLite's cursor execution engine, ensuring values are never concatenated directly into the query string.
+### Q5: What is the rule for farm plots bigger than 4 hectares?
+> **Answer**: Under Article 9, plots &le; 4.0 hectares can use a single GPS point, but plots &gt; 4.0 hectares **must** have a polygon boundary with at least 3 corner points.
 
-### Q6: What indexing strategy was implemented?
-> **Answer**: Indexes are created on all foreign key columns to optimize `JOIN` performance, composite indexes on junction tables, and unique indexes on high-frequency lookup identifiers (`batch_code`, `dds_reference_number`, `iso_code`).
+### Q6: Why did the Pelalawan plot show "Waiting" instead of "Approved"?
+> **Answer**: Even though satellite scans were clear, its land ownership document is unverified (`verified = 0`). The system requires both clear land and verified legal papers.
 
-### Q7: How does the system enforce Article 9 (parcels > 4.0 hectares must be polygons)?
-> **Answer**: Through a combination of frontend real-time auto-detection and database-level validation triggers (`trg_validate_plot_polygon_req_insert` and `trg_validate_plot_polygon_req_update`). If `area_hectares > 4.0` and `geo_type != 'POLYGON'`, the database aborts the write with an error message.
+### Q7: Why use Raw SQL instead of an ORM?
+> **Answer**: Raw SQL lets us demonstrate relational algebra, recursive CTEs, and database-level triggers directly so teachers can see the exact database performance and query plan.
 
-### Q8: How does the audit log work?
-> **Answer**: The `audit_log` table is populated automatically via database triggers on `batches`, `plots`, and `due_diligence_statements` on `AFTER INSERT`, `AFTER UPDATE`, and `AFTER DELETE`. The trigger packages modified records into JSON objects using SQLite's `json_object()` function, maintaining an immutable audit history independent of application logic.
+### Q8: How is SQL injection prevented?
+> **Answer**: Every query uses parameterized placeholders (`?`). User inputs are passed separately as parameters to SQLite and are never glued into the SQL string.
 
-### Q9: Why is `PRAGMA foreign_keys = ON;` explicitly called on connection?
-> **Answer**: By default, SQLite has foreign key constraints disabled for backward compatibility. Enabling `PRAGMA foreign_keys = ON;` upon connection ensures that `ON DELETE RESTRICT` and `ON DELETE CASCADE` rules are strictly enforced by the SQLite C-engine.
+### Q9: How does the Automatic Change History (Audit Log) work?
+> **Answer**: Database triggers on `batches`, `plots`, and `due_diligence_statements` automatically record every insert, update, or delete into the `audit_log` table with old and new values.
 
-### Q10: How does the system model mixing and aggregation of batches?
-> **Answer**: Batches are categorized into `RAW`, `PROCESSED`, and `MIXED`. `RAW` batches link directly to `plots` via `batch_plot_sources`. `PROCESSED` and `MIXED` batches link to one or more parent batches via `batch_lineage`. A trigger (`trg_prevent_mixed_non_compliant_parent`) prohibits linking any `Non-Compliant` parent batch to prevent contamination of clean supply chains.
+### Q10: What is an EU Report (DDS)?
+> **Answer**: A Due Diligence Statement (DDS) is the official electronic document submitted to the EU customs portal before selling. It lists the approved batches and assigns an official reference number.
 
 ---
 
 ## 7. Educational Disclaimer
-*This project was developed for academic and technical demonstration purposes to showcase relational database architecture, SQL query engines, and compliance automation under Regulation (EU) 2023/1115.*
+*This project was developed for academic demonstration to showcase relational database architecture, recursive SQL queries, and compliance automation under Regulation (EU) 2023/1115.*
+

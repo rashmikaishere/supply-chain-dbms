@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EUDR TraceChain | Enterprise Compliance Console &amp; Database Explorer</title>
+  <title>EUDR TraceChain | Enterprise Compliance Platform &amp; Database Architecture</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -16,6 +16,7 @@
             forest: {
               950: '#061a12',
               900: '#0F3D2E',
+              850: '#124837',
               800: '#165641',
               700: '#1E7055',
               600: '#278B6A'
@@ -54,309 +55,425 @@
   <!-- Custom Styles -->
   <link rel="stylesheet" href="/static/css/custom.css">
 </head>
-<body class="bg-[#F7F8F5] text-slate-900 antialiased overflow-x-hidden">
+<body class="bg-[#F7F8F5] text-slate-900 antialiased overflow-hidden">
 
   <!-- ====================================================================
-       APP CONTAINER
+       APP SHELL: FIXED SIDEBAR + SCROLLABLE MAIN CONTENT
        ==================================================================== -->
-  <div class="min-h-screen flex">
+  <div id="app-shell">
+
+    <!-- Mobile Backdrop -->
+    <div id="mobile-sidebar-backdrop" onclick="toggleSidebar(false)" class="fixed inset-0 bg-slate-900/60 z-30 hidden lg:hidden"></div>
 
     <!-- ====================================================================
-         LEFT SIDEBAR
+         FIXED SIDEBAR (240px wide, 100dvh)
          ==================================================================== -->
-    <aside id="sidebar" class="w-64 bg-forest-900 text-slate-300 flex-shrink-0 flex flex-col transition-all duration-300 z-40 border-r border-forest-800">
-      <!-- Sidebar Header / Logo -->
-      <div class="h-16 flex items-center justify-between px-4 border-b border-forest-800">
-        <a href="/" class="flex items-center space-x-2.5">
-          <div class="w-8 h-8 rounded-lg bg-emerald-500 text-forest-950 flex items-center justify-center font-bold">
+    <aside id="app-sidebar" aria-label="Main Navigation">
+      
+      <!-- 1. TOP (FIXED): Logo & App Name -->
+      <div class="sidebar-top">
+        <a href="/" class="flex items-center space-x-2.5 group" title="Return to Home">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500 text-forest-950 flex items-center justify-center font-bold shadow-sm group-hover:scale-105 transition-transform">
             <svg class="w-5 h-5 text-forest-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
               <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
             </svg>
           </div>
           <div>
-            <span class="text-sm font-bold text-white tracking-tight">EUDR TraceChain</span>
-            <span class="block text-[9px] uppercase tracking-widest text-emerald-400 font-semibold">Reg. (EU) 2023/1115</span>
+            <span class="text-sm font-bold text-white tracking-tight block">EUDR TraceChain</span>
+            <span class="block text-[9px] uppercase tracking-widest text-emerald-400 font-semibold">EUDR Compliance</span>
           </div>
         </a>
       </div>
 
-      <!-- Navigation Links -->
-      <div class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-        
-        <!-- SECTION 1: OVERVIEW -->
-        <div>
-          <div class="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Overview</div>
-          <nav class="space-y-1">
-            <button onclick="switchTab('dashboard')" class="nav-item w-full flex items-center px-3 py-2 text-xs font-semibold rounded-lg hover:bg-forest-800 text-white transition-colors" data-tab="dashboard">
-              <i data-lucide="layout-dashboard" class="w-4 h-4 mr-3 text-emerald-400"></i>
-              Dashboard
-            </button>
-          </nav>
+      <!-- 2. MIDDLE (FLEXIBLE SCROLL): Collapsible Navigation Accordions -->
+      <div class="sidebar-nav-scroll" id="sidebar-scrollable-nav">
+
+        <!-- SECTION: HOME -->
+        <div class="mb-3">
+          <button onclick="switchTab('dashboard')" class="nav-item-btn" data-tab="dashboard" id="nav-btn-dashboard" title="Home: story, key numbers, and overview" tabindex="0">
+            <i data-lucide="home" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+            <span>Home</span>
+          </button>
         </div>
 
-        <!-- SECTION 2: SUPPLY CHAIN -->
-        <div>
-          <div class="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Supply Chain</div>
-          <nav class="space-y-1">
-            <button onclick="switchTab('plots-map')" class="nav-item w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg hover:bg-forest-800 text-slate-300 hover:text-white transition-colors" data-tab="plots-map">
-              <i data-lucide="map" class="w-4 h-4 mr-3 text-emerald-400"></i>
-              Plots &amp; Geospatial Map
+        <!-- SECTION: START HERE -->
+        <div class="sidebar-section mb-3" id="sec-start-here">
+          <button class="sidebar-section-header" onclick="toggleSidebarSection('sec-start-here')" aria-expanded="true">
+            <span>START HERE</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 sidebar-chevron"></i>
+          </button>
+          <div class="sidebar-section-content space-y-0.5 mt-1">
+            <button onclick="switchTabAndFocusTrace()" class="nav-item-btn" data-tab="batches-trace" id="nav-btn-track-product" title="Track a product journey from farm to EU" tabindex="0">
+              <i data-lucide="search" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+              <span>Track a Product</span>
             </button>
-            <button onclick="switchTab('batches-trace')" class="nav-item w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg hover:bg-forest-800 text-slate-300 hover:text-white transition-colors" data-tab="batches-trace">
-              <i data-lucide="git-branch" class="w-4 h-4 mr-3 text-emerald-400"></i>
-              Batches &amp; Traceability
-            </button>
-          </nav>
-        </div>
-
-        <!-- SECTION 3: COMPLIANCE -->
-        <div>
-          <div class="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Compliance &amp; Due Diligence</div>
-          <nav class="space-y-1">
-            <button onclick="switchTab('risk-diligence')" class="nav-item w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg hover:bg-forest-800 text-slate-300 hover:text-white transition-colors" data-tab="risk-diligence">
-              <i data-lucide="shield-alert" class="w-4 h-4 mr-3 text-emerald-400"></i>
-              Risk &amp; Due Diligence (DDS)
-            </button>
-            <button onclick="switchTab('master-data')" class="nav-item w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg hover:bg-forest-800 text-slate-300 hover:text-white transition-colors" data-tab="master-data">
-              <i data-lucide="layers" class="w-4 h-4 mr-3 text-emerald-400"></i>
-              Master Data &amp; Actors
-            </button>
-          </nav>
-        </div>
-
-        <!-- SECTION 4: DATABASE ARCHITECTURE (TEACHER DEMO) -->
-        <div>
-          <div class="px-3 text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-2 flex items-center justify-between">
-            <span>Database Architecture</span>
-            <span class="px-1.5 py-0.2 bg-amber-400/20 text-amber-300 text-[9px] rounded font-mono">Viva</span>
           </div>
-          <nav class="space-y-1">
-            <button onclick="switchTab('db-er-diagram')" class="nav-item w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg hover:bg-forest-800 text-slate-300 hover:text-white transition-colors" data-tab="db-er-diagram">
-              <i data-lucide="network" class="w-4 h-4 mr-3 text-amber-400"></i>
-              Interactive ER Diagram
+        </div>
+
+        <!-- SECTION: THE 5 STEPS -->
+        <div class="sidebar-section mb-3" id="sec-the-5-steps">
+          <button class="sidebar-section-header" onclick="toggleSidebarSection('sec-the-5-steps')" aria-expanded="true">
+            <span>THE 5 STEPS</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 sidebar-chevron"></i>
+          </button>
+          <div class="sidebar-section-content space-y-0.5 mt-1">
+            <button onclick="switchTab('master-data')" class="nav-item-btn" data-tab="master-data" id="nav-btn-master-data" title="Step 1: Companies and farmers in the supply chain" tabindex="0">
+              <i data-lucide="building-2" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+              <span>1. Companies &amp; Farmers</span>
             </button>
-            <button onclick="switchTab('db-table-browser')" class="nav-item w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg hover:bg-forest-800 text-slate-300 hover:text-white transition-colors" data-tab="db-table-browser">
-              <i data-lucide="table" class="w-4 h-4 mr-3 text-amber-400"></i>
-              Live Table Browser
+            <button onclick="switchTab('plots-map')" class="nav-item-btn" data-tab="plots-map" id="nav-btn-plots-map" title="Step 2: Farm plots, GPS locations, and satellite checks" tabindex="0">
+              <i data-lucide="map-pin" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+              <span>2. Farm Plots &amp; Map</span>
             </button>
-            <button onclick="switchTab('db-sql-console')" class="nav-item w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg hover:bg-forest-800 text-slate-300 hover:text-white transition-colors" data-tab="db-sql-console">
-              <i data-lucide="terminal" class="w-4 h-4 mr-3 text-amber-400"></i>
-              SQL Query Console
+            <button onclick="switchTab('batches-trace')" class="nav-item-btn" data-tab="batches-trace" id="nav-btn-batches-trace" title="Step 3: Product batches and supply journey" tabindex="0">
+              <i data-lucide="package" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+              <span>3. Product Batches</span>
             </button>
-            <button onclick="switchTab('db-triggers-views')" class="nav-item w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg hover:bg-forest-800 text-slate-300 hover:text-white transition-colors" data-tab="db-triggers-views">
-              <i data-lucide="zap" class="w-4 h-4 mr-3 text-amber-400"></i>
-              Triggers, Views &amp; Indexes
+            <button onclick="switchTab('safety-check')" class="nav-item-btn" data-tab="safety-check" id="nav-btn-safety-check" title="Step 4: Check country risk, forest loss, and papers" tabindex="0">
+              <i data-lucide="shield-check" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+              <span>4. Safety Check</span>
             </button>
-            <button onclick="switchTab('db-audit-log')" class="nav-item w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg hover:bg-forest-800 text-slate-300 hover:text-white transition-colors" data-tab="db-audit-log">
-              <i data-lucide="history" class="w-4 h-4 mr-3 text-amber-400"></i>
-              Audit Log Timeline
+            <button onclick="switchTab('eu-report')" class="nav-item-btn" data-tab="eu-report" id="nav-btn-eu-report" title="Step 5: Send official EU report (DDS)" tabindex="0">
+              <i data-lucide="file-check" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+              <span>5. EU Report</span>
             </button>
-            <button onclick="switchTab('db-normalization')" class="nav-item w-full flex items-center px-3 py-2 text-xs font-medium rounded-lg hover:bg-forest-800 text-slate-300 hover:text-white transition-colors" data-tab="db-normalization">
-              <i data-lucide="file-text" class="w-4 h-4 mr-3 text-amber-400"></i>
-              3NF Normalization Notes
+          </div>
+        </div>
+
+        <!-- SECTION: SEE THE DATABASE (badge: For Viva) -->
+        <div class="sidebar-section mb-3" id="sec-see-database">
+          <button class="sidebar-section-header" onclick="toggleSidebarSection('sec-see-database')" aria-expanded="true">
+            <span class="flex items-center">
+              <span>SEE THE DATABASE</span>
+              <span class="ml-1.5 px-1 py-0.2 bg-amber-400/20 text-amber-300 text-[9px] rounded font-mono font-normal">For Viva</span>
+            </span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 sidebar-chevron"></i>
+          </button>
+          <div class="sidebar-section-content mt-1">
+            
+            <!-- Sub-section: Structure -->
+            <div class="sidebar-subsection-label">Structure</div>
+            <button onclick="switchTab('db-er-diagram')" class="nav-item-btn nav-item-indented" data-tab="db-er-diagram" id="nav-btn-db-er-diagram" title="Visual diagram showing all tables and connections" tabindex="0">
+              <i data-lucide="network" class="w-3.5 h-3.5 mr-2 text-amber-400 flex-shrink-0"></i>
+              <span>Table Diagram</span>
             </button>
-          </nav>
+            <button onclick="switchTab('db-table-browser')" class="nav-item-btn nav-item-indented" data-tab="db-table-browser" id="nav-btn-db-table-browser" title="Browse raw rows in any database table" tabindex="0">
+              <i data-lucide="table" class="w-3.5 h-3.5 mr-2 text-amber-400 flex-shrink-0"></i>
+              <span>Data Tables</span>
+            </button>
+
+            <!-- Sub-section: Work with data -->
+            <div class="sidebar-subsection-label mt-1">Work with data</div>
+            <button onclick="switchTab('db-sql-console')" class="nav-item-btn nav-item-indented" data-tab="db-sql-console" id="nav-btn-db-sql-console" title="Run 10 ready-made queries or type custom SQL" tabindex="0">
+              <i data-lucide="terminal" class="w-3.5 h-3.5 mr-2 text-amber-400 flex-shrink-0"></i>
+              <span>Ask the Database (SQL)</span>
+            </button>
+            <button onclick="switchTab('db-triggers-views')" class="nav-item-btn nav-item-indented" data-tab="db-triggers-views" id="nav-btn-db-triggers-views" title="Automatic rules that block illegal data and protect rules" tabindex="0">
+              <i data-lucide="zap" class="w-3.5 h-3.5 mr-2 text-amber-400 flex-shrink-0"></i>
+              <span>Automatic Rules</span>
+            </button>
+
+            <!-- Sub-section: Proof -->
+            <div class="sidebar-subsection-label mt-1">Proof</div>
+            <button onclick="switchTab('db-audit-log')" class="nav-item-btn nav-item-indented" data-tab="db-audit-log" id="nav-btn-db-audit-log" title="Timeline of all changes saved automatically" tabindex="0">
+              <i data-lucide="history" class="w-3.5 h-3.5 mr-2 text-amber-400 flex-shrink-0"></i>
+              <span>Change History</span>
+            </button>
+            <button onclick="switchTab('db-normalization')" class="nav-item-btn nav-item-indented" data-tab="db-normalization" id="nav-btn-db-normalization" title="Why our database design stops duplicate errors" tabindex="0">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5 mr-2 text-amber-400 flex-shrink-0"></i>
+              <span>Why Our Design Is Good</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- SECTION: HELP -->
+        <div class="sidebar-section mb-2" id="sec-help">
+          <button class="sidebar-section-header" onclick="toggleSidebarSection('sec-help')" aria-expanded="true">
+            <span>HELP</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 sidebar-chevron"></i>
+          </button>
+          <div class="sidebar-section-content space-y-0.5 mt-1">
+            <button onclick="switchTab('word-meanings')" class="nav-item-btn" data-tab="word-meanings" id="nav-btn-word-meanings" title="Simple meanings for all legal and technical words" tabindex="0">
+              <i data-lucide="book-open" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+              <span>Word Meanings</span>
+            </button>
+          </div>
         </div>
 
       </div>
 
-      <!-- Sidebar Footer Tools -->
-      <div class="p-3 border-t border-forest-800 space-y-2 bg-forest-950">
-        <button onclick="startGuidedDemo()" class="w-full flex items-center justify-center px-3 py-2 text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 rounded-lg shadow transition-all">
-          <i data-lucide="play-circle" class="w-4 h-4 mr-1.5 text-slate-900"></i>
-          Guided Demo Mode
+      <!-- 3. BOTTOM (PINNED): Yellow Start Demo Tour, Reset Data, and User Profile Chip -->
+      <div class="sidebar-bottom-pinned">
+        <button onclick="startGuidedDemo()" class="w-full flex items-center justify-center px-3 py-2 text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 rounded-lg shadow transition-all" title="Start 7-step guided demo tour">
+          <i data-lucide="play" class="w-3.5 h-3.5 mr-1.5 fill-current"></i>
+          <span>Start Demo Tour</span>
         </button>
-        <button onclick="resetDemoDatabase()" class="w-full flex items-center justify-center px-3 py-1.5 text-[11px] font-semibold text-slate-400 hover:text-rose-400 hover:bg-forest-900 rounded transition-colors">
-          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 mr-1.5"></i>
-          Reset Sample Data
-        </button>
+        
+        <div class="flex items-center justify-between px-1">
+          <button onclick="resetDemoDatabase()" class="text-[11px] font-semibold text-slate-400 hover:text-rose-400 transition-colors flex items-center" title="Reset all data back to original seed state">
+            <i data-lucide="rotate-ccw" class="w-3 h-3 mr-1"></i>
+            <span>Reset Demo Data</span>
+          </button>
+          <button onclick="switchTab('word-meanings')" class="text-[11px] text-emerald-400 hover:text-emerald-300 font-medium">Glossary</button>
+        </div>
+
+        <!-- User Profile Chip -->
+        <div class="flex items-center space-x-2 pt-2 border-t border-forest-800/80">
+          <div class="w-7 h-7 rounded-full bg-forest-800 border border-emerald-500/30 text-white flex items-center justify-center font-bold text-xs">
+            <span>EV</span>
+          </div>
+          <div class="text-left text-xs leading-tight">
+            <div class="font-semibold text-slate-200 text-[11px]">Elena Van Der Meer</div>
+            <div class="text-[9px] text-emerald-400">EU Importer &bull; Operator</div>
+          </div>
+        </div>
       </div>
+
     </aside>
 
     <!-- ====================================================================
-         MAIN CONTENT AREA
+         MAIN CONTENT AREA (SCROLLS INDEPENDENTLY)
          ==================================================================== -->
-    <div class="flex-1 flex flex-col min-w-0">
+    <div id="main-content-scroll">
       
-      <!-- TOP NAVIGATION BAR -->
-      <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-30">
-        <!-- Breadcrumb & Title -->
+      <!-- TOP NAVIGATION BAR (STICKY) -->
+      <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30 flex-shrink-0">
+        
+        <!-- Breadcrumbs & Hamburger for Mobile -->
         <div class="flex items-center space-x-3">
-          <button onclick="toggleSidebar()" class="lg:hidden text-slate-500 hover:text-slate-700">
+          <button onclick="toggleSidebar(true)" class="lg:hidden text-slate-600 hover:text-slate-900 p-1" aria-label="Open Navigation">
             <i data-lucide="menu" class="w-5 h-5"></i>
           </button>
           <div class="flex items-center text-xs text-slate-500 space-x-1.5">
-            <span>TraceChain</span>
-            <span>/</span>
-            <span id="breadcrumb-title" class="font-semibold text-slate-900">Dashboard</span>
+            <span class="hidden sm:inline">EUDR TraceChain</span>
+            <span class="hidden sm:inline">/</span>
+            <span id="breadcrumb-title" class="font-bold text-slate-900">Home</span>
           </div>
         </div>
 
-        <!-- Top Right Actions -->
-        <div class="flex items-center space-x-4">
+        <!-- Actions: Global Search, Show Database Action, View Switcher -->
+        <div class="flex items-center space-x-3">
           
-          <!-- Global Search / Command Palette Trigger -->
-          <button onclick="openCommandPalette()" class="hidden sm:flex items-center px-3 py-1.5 text-xs text-slate-500 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition-colors">
-            <i data-lucide="search" class="w-3.5 h-3.5 mr-2 text-slate-400"></i>
+          <!-- Global Search (Ctrl+K) -->
+          <button onclick="openCommandPalette()" class="hidden md:flex items-center px-2.5 py-1 text-xs text-slate-500 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition-colors">
+            <i data-lucide="search" class="w-3.5 h-3.5 mr-1.5 text-slate-400"></i>
             <span>Quick search...</span>
-            <kbd class="ml-3 px-1.5 py-0.5 text-[10px] font-mono bg-white border border-slate-300 rounded text-slate-500">Ctrl+K</kbd>
+            <kbd class="ml-2 px-1 text-[10px] font-mono bg-white border border-slate-300 rounded text-slate-500">Ctrl+K</kbd>
           </button>
 
-          <!-- Under the Hood (SQL Telemetry) Toggle -->
-          <button onclick="toggleUnderTheHood()" class="flex items-center px-3 py-1.5 text-xs font-semibold text-forest-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg transition-all relative group">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2 group-hover:animate-ping"></span>
-            <i data-lucide="code-2" class="w-3.5 h-3.5 mr-1.5 text-emerald-700"></i>
-            <span>Under the Hood (SQL)</span>
-            <span id="sql-counter-badge" class="ml-2 px-1.5 py-0.2 text-[10px] font-mono bg-emerald-200 text-emerald-800 rounded">0 ms</span>
+          <!-- Show Database Action (Under the Hood) -->
+          <button onclick="toggleUnderTheHood()" class="flex items-center px-2.5 py-1 text-xs font-semibold text-forest-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg transition-all" title="View the SQL query running behind the scenes">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+            <i data-lucide="terminal" class="w-3.5 h-3.5 mr-1 text-emerald-700"></i>
+            <span class="hidden sm:inline">Show Database Action</span>
+            <span class="sm:hidden">SQL</span>
+            <span id="sql-counter-badge" class="ml-1.5 px-1 py-0.2 text-[10px] font-mono bg-emerald-200 text-emerald-800 rounded">0 ms</span>
           </button>
 
-          <!-- Role Switcher & Avatar -->
-          <div class="flex items-center space-x-2 pl-3 border-l border-slate-200">
-            <div class="w-8 h-8 rounded-full bg-forest-900 text-white flex items-center justify-center font-bold text-xs">
-              <span id="user-avatar-initials">EV</span>
-            </div>
-            <div class="hidden md:block text-left text-xs">
-              <div class="font-semibold text-slate-900" id="user-display-name">Elena Van Der Meer</div>
-              <div class="text-[10px] text-emerald-600 font-medium">Role: Operator</div>
-            </div>
+          <!-- Global View Mode Switcher: [Simple View | Database View] -->
+          <div class="view-mode-switcher" title="Toggle between friendly words and raw database column names">
+            <button onclick="setGlobalViewMode('simple')" id="view-mode-simple-btn" class="view-mode-btn active">Simple View</button>
+            <button onclick="setGlobalViewMode('database')" id="view-mode-db-btn" class="view-mode-btn">Database View</button>
           </div>
 
         </div>
       </header>
 
-      <!-- NOTIFICATION / TOAST CONTAINER -->
-      <div id="toast-container" class="fixed top-20 right-6 z-50 space-y-2 pointer-events-none"></div>
+      <!-- NOTIFICATION TOAST CONTAINER -->
+      <div id="toast-container" class="fixed top-16 right-6 z-50 space-y-2 pointer-events-none"></div>
 
-      <!-- ====================================================================
-           TAB VIEW CONTAINERS
-           ==================================================================== -->
-      <main class="flex-1 p-6 overflow-y-auto">
-        
+      <!-- MAIN TAB VIEWS -->
+      <main class="flex-1 p-4 sm:p-6">
+
         <!-- ==============================================================
-             1. TAB: DASHBOARD
+             HOME (DASHBOARD)
              ============================================================== -->
-        <div id="tab-dashboard" class="tab-pane space-y-6">
-          <!-- EUDR Deadline Info Banner -->
-          <div class="p-4 rounded-xl bg-gradient-to-r from-forest-900 to-forest-800 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
-            <div class="flex items-center space-x-3">
-              <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
-                <i data-lucide="info" class="w-5 h-5"></i>
-              </div>
+        <div id="tab-dashboard" class="tab-pane space-y-5">
+          
+          <!-- Standard 3-Part Header -->
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
               <div>
-                <h4 class="font-bold text-sm">EUDR Transition Deadlines (Regulation (EU) 2025/2650)</h4>
-                <p class="text-xs text-slate-300 mt-0.5">Deforestation Cut-off: <strong>31 Dec 2020</strong> &bull; Large Operators: <strong>30 Dec 2026</strong> &bull; Micro/SME: <strong>30 Jun 2027</strong></p>
+                <h1 class="text-xl font-extrabold text-slate-900">Home: Supply Chain Overview</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> A summary of our entire supply chain. See approved batches, farm locations, and compliance checks at a glance.
+                </div>
               </div>
             </div>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: batches, plots, due_diligence_statements</span>
+              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              </button>
+            </div>
+          </div>
+
+          <!-- THE ONE-SENTENCE STORY & 5-STEP INTERACTIVE FLOW -->
+          <div class="story-flow-container">
+            <p class="story-lead-sentence">
+              &ldquo;EU law (EUDR) says products like cocoa, coffee, palm oil, soy, rubber, cattle and wood must NOT come from land that was cleared after 31 Dec 2020. This system tracks every product back to the exact farm and proves it.&rdquo;
+            </p>
+            
+            <div class="five-step-flow">
+              <div onclick="switchTab('master-data')" class="flow-step-card" title="Click to view Step 1">
+                <div class="flow-step-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+                <span class="flow-step-number">Step 1</span>
+                <span class="flow-step-title">Companies</span>
+                <span class="text-[11px] text-slate-500 mt-1">Farmers &amp; Buyers</span>
+              </div>
+              <div onclick="switchTab('plots-map')" class="flow-step-card" title="Click to view Step 2">
+                <div class="flow-step-icon"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
+                <span class="flow-step-number">Step 2</span>
+                <span class="flow-step-title">Farm Plots</span>
+                <span class="text-[11px] text-slate-500 mt-1">GPS &amp; Satellites</span>
+              </div>
+              <div onclick="switchTab('batches-trace')" class="flow-step-card" title="Click to view Step 3">
+                <div class="flow-step-icon"><i data-lucide="package" class="w-5 h-5"></i></div>
+                <span class="flow-step-number">Step 3</span>
+                <span class="flow-step-title">Batches</span>
+                <span class="text-[11px] text-slate-500 mt-1">Track the Journey</span>
+              </div>
+              <div onclick="switchTab('safety-check')" class="flow-step-card" title="Click to view Step 4">
+                <div class="flow-step-icon"><i data-lucide="shield-check" class="w-5 h-5"></i></div>
+                <span class="flow-step-number">Step 4</span>
+                <span class="flow-step-title">Safety Check</span>
+                <span class="text-[11px] text-slate-500 mt-1">3 Simple Questions</span>
+              </div>
+              <div onclick="switchTab('eu-report')" class="flow-step-card" title="Click to view Step 5">
+                <div class="flow-step-icon"><i data-lucide="file-check" class="w-5 h-5"></i></div>
+                <span class="flow-step-number">Step 5</span>
+                <span class="flow-step-title">EU Report</span>
+                <span class="text-[11px] text-slate-500 mt-1">Legal Clearance</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SIMPLIFIED DEADLINE BANNER -->
+          <div class="p-3.5 rounded-xl bg-forest-900 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="calendar" class="w-4 h-4"></i>
+              </div>
+              <p class="text-xs text-slate-200">
+                <strong>Important dates:</strong> <strong>31 Dec 2020</strong> = land must be forest-free since this date. <strong>30 Dec 2026</strong> = rule starts for large companies. <strong>30 Jun 2027</strong> = small companies.
+              </p>
+            </div>
             <button onclick="switchTab('batches-trace')" class="px-3 py-1.5 text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-forest-950 rounded-lg transition-colors flex-shrink-0">
-              Run Trace Check &rarr;
+              Track a Product &rarr;
             </button>
           </div>
 
-          <!-- KPI Cards Grid -->
+          <!-- 4 BIG CARDS WITH PLAIN TITLES & SUBTITLES -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Card 1 -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
                 <span>Total Batches</span>
                 <i data-lucide="package" class="w-4 h-4 text-slate-400"></i>
               </div>
-              <div class="mt-2 text-2xl font-bold text-slate-900" id="kpi-total-batches">-</div>
-              <div class="mt-1 flex items-center text-xs text-emerald-600 font-medium">
-                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 mr-1"></i>
-                <span id="kpi-compliance-rate">- %</span> compliant
-              </div>
+              <div class="mt-2 text-2xl font-black text-slate-900" id="kpi-total-batches">-</div>
+              <div class="mt-1 text-xs text-slate-500" id="kpi-batches-sub">Lots of goods registered in database</div>
             </div>
 
             <!-- Card 2 -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
-                <span>Compliant Batches</span>
-                <i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                <span>Approved Batches</span>
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>
               </div>
-              <div class="mt-2 text-2xl font-bold text-emerald-600" id="kpi-compliant-batches">-</div>
-              <div class="mt-1 text-xs text-slate-500" id="kpi-pending-batches">- pending review</div>
+              <div class="mt-2 text-2xl font-black text-emerald-600" id="kpi-compliant-batches">-</div>
+              <div class="mt-1 flex items-center text-xs text-emerald-700 font-semibold" id="kpi-compliance-rate-box">
+                <span id="kpi-compliance-rate">- %</span> &nbsp;compliant
+              </div>
             </div>
 
             <!-- Card 3 -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
-                <span>Monitored Farm Plots</span>
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                <span>Farm Plots Tracked</span>
                 <i data-lucide="map-pin" class="w-4 h-4 text-blue-500"></i>
               </div>
-              <div class="mt-2 text-2xl font-bold text-slate-900" id="kpi-total-plots">-</div>
-              <div class="mt-1 flex items-center text-xs text-rose-600 font-medium">
-                <i data-lucide="alert-triangle" class="w-3.5 h-3.5 mr-1"></i>
-                <span id="kpi-high-risk-plots">-</span> flagged high risk
+              <div class="mt-2 text-2xl font-black text-slate-900" id="kpi-total-plots">-</div>
+              <div class="mt-1 text-xs text-slate-500" id="kpi-plots-sub">
+                <span id="kpi-high-risk-plots" class="font-bold text-rose-600">-</span> flagged high risk
               </div>
             </div>
 
             <!-- Card 4 -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
-                <span>Submitted DDS Statements</span>
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                <span>EU Reports Filed</span>
                 <i data-lucide="file-check-2" class="w-4 h-4 text-purple-500"></i>
               </div>
-              <div class="mt-2 text-2xl font-bold text-purple-700" id="kpi-total-dds">-</div>
-              <div class="mt-1 text-xs text-slate-500">EU Traces Registry Portal</div>
+              <div class="mt-2 text-2xl font-black text-purple-700" id="kpi-total-dds">-</div>
+              <div class="mt-1 text-xs text-slate-500">Sent to EU customs portal</div>
             </div>
           </div>
 
-          <!-- Charts Grid -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Chart 1: Compliance by Commodity -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <div class="flex items-center justify-between mb-4">
+          <!-- TWO SIMPLE CHARTS (DONUT + HORIZONTAL BARS) -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- Chart 1: Donut -->
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col">
+              <div class="flex items-center justify-between mb-2">
                 <div>
-                  <h3 class="font-bold text-sm text-slate-900">Compliance Status by Commodity</h3>
-                  <p class="text-xs text-slate-500">7 Regulated commodities under EUDR Article 1</p>
+                  <h3 class="font-bold text-sm text-slate-900">Are our products safe?</h3>
+                  <p class="text-xs text-slate-500">Current status of all registered product batches.</p>
                 </div>
-                <button onclick="refreshDashboardCharts()" class="text-slate-400 hover:text-slate-600">
-                  <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                </button>
+                <span class="status-badge status-badge-safe"><i data-lucide="pie-chart" class="w-3 h-3"></i> Donut</span>
               </div>
-              <div class="h-64 relative">
-                <canvas id="chartComplianceByCommodity"></canvas>
+              <div class="h-60 relative flex items-center justify-center">
+                <canvas id="chartComplianceDonut"></canvas>
+              </div>
+              <div class="flex items-center justify-center space-x-5 text-xs text-slate-600 mt-2">
+                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5"></span> Approved</span>
+                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5"></span> Waiting</span>
+                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1.5"></span> Blocked</span>
               </div>
             </div>
 
-            <!-- Chart 2: Country Risk Radar -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <div class="flex items-center justify-between mb-4">
+            <!-- Chart 2: Horizontal Bars -->
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col">
+              <div class="flex items-center justify-between mb-2">
                 <div>
-                  <h3 class="font-bold text-sm text-slate-900">Country Risk Benchmarking</h3>
-                  <p class="text-xs text-slate-500">Low, Standard, and High risk source countries</p>
+                  <h3 class="font-bold text-sm text-slate-900">Risk by country</h3>
+                  <p class="text-xs text-slate-500">High risk = more chance of deforestation.</p>
                 </div>
-                <span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 rounded">Art. 29 Benchmark</span>
+                <span class="status-badge status-badge-waiting"><i data-lucide="bar-chart-2" class="w-3 h-3"></i> Countries</span>
               </div>
-              <div class="h-64 relative">
-                <canvas id="chartCountryRisk"></canvas>
+              <div class="h-60 relative">
+                <canvas id="chartCountryRiskHorizontal"></canvas>
+              </div>
+              <div class="flex items-center justify-center space-x-5 text-xs text-slate-600 mt-2">
+                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5"></span> Low Risk</span>
+                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5"></span> Standard Risk</span>
+                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1.5"></span> High Risk</span>
               </div>
             </div>
           </div>
 
-          <!-- Recent Trigger Audit Activity Feed -->
+          <!-- RECENT CHANGES (SAVED AUTOMATICALLY) -->
           <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-              <div class="flex items-center space-x-2">
-                <i data-lucide="history" class="w-4 h-4 text-emerald-600"></i>
-                <h3 class="font-bold text-sm text-slate-900">Trigger-Generated Audit Feed (Real-Time)</h3>
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900">Recent Changes (saved automatically)</h3>
+                <p class="text-xs text-slate-500">Database triggers automatically save every addition or edit.</p>
               </div>
-              <button onclick="switchTab('db-audit-log')" class="text-xs text-emerald-600 hover:underline font-semibold">View Full Audit Log &rarr;</button>
+              <button onclick="switchTab('db-audit-log')" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700">View All History &rarr;</button>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs">
                 <thead>
-                  <tr class="text-slate-400 border-b border-slate-100">
-                    <th class="pb-2 font-semibold">Log ID</th>
-                    <th class="pb-2 font-semibold">Table</th>
-                    <th class="pb-2 font-semibold">Action</th>
-                    <th class="pb-2 font-semibold">Details</th>
-                    <th class="pb-2 font-semibold">Timestamp</th>
+                  <tr class="text-slate-400 border-b border-slate-100 bg-slate-50/50">
+                    <th class="py-2 px-3 font-semibold col-database">Log ID</th>
+                    <th class="py-2 px-3 font-semibold col-database">Table</th>
+                    <th class="py-2 px-3 font-semibold">What Happened</th>
+                    <th class="py-2 px-3 font-semibold">Time</th>
+                    <th class="py-2 px-3 font-semibold col-database">Raw Details</th>
                   </tr>
                 </thead>
                 <tbody id="dashboard-audit-tbody" class="divide-y divide-slate-100 text-slate-600">
-                  <tr><td colspan="5" class="py-4 text-center text-slate-400">Loading audit feed...</td></tr>
+                  <tr><td colspan="5" class="py-4 text-center text-slate-400">Loading recent changes...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -365,73 +482,144 @@
         </div>
 
         <!-- ==============================================================
-             2. TAB: PLOTS & GEOSPATIAL MAP
+             STEP 1: COMPANIES & FARMERS (was Master Data & Actors)
              ============================================================== -->
-        <div id="tab-plots-map" class="tab-pane hidden space-y-6">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h2 class="text-lg font-bold text-slate-900">Production Plots &amp; Geospatial Verification</h2>
-              <p class="text-xs text-slate-500">6-decimal precision coordinates. Polygons required for plots &gt; 4.0 hectares (Art. 9).</p>
+        <div id="tab-master-data" class="tab-pane hidden space-y-5">
+          
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">1. Companies &amp; Farmers: who is in the chain?</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> Every person and business in the supply chain: from smallholder farmer cooperatives to EU importers who place goods on the market.
+                </div>
+              </div>
             </div>
-            <div class="flex items-center space-x-3">
-              <button onclick="openAddPlotModal()" class="inline-flex items-center px-3.5 py-2 text-xs font-semibold text-white bg-forest-900 hover:bg-forest-800 rounded-lg shadow-sm transition-all">
-                <i data-lucide="plus" class="w-3.5 h-3.5 mr-1.5"></i>
-                Register New Plot
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: organizations, countries, commodities, users</span>
+              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
               </button>
             </div>
           </div>
 
-          <!-- Map & Details Split View -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Sub-tabs: Companies | Products | Countries | Legal Documents | Users -->
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
+              <button onclick="loadMasterTable('organizations')" class="master-nav-btn px-3 py-1.5 text-xs font-bold rounded-md bg-forest-900 text-white shadow-sm" data-master="organizations">Companies</button>
+              <button onclick="loadMasterTable('commodities')" class="master-nav-btn px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900" data-master="commodities">Products</button>
+              <button onclick="loadMasterTable('countries')" class="master-nav-btn px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900" data-master="countries">Countries</button>
+              <button onclick="loadMasterTable('legality_documents')" class="master-nav-btn px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900" data-master="legality_documents">Legal Documents</button>
+              <button onclick="loadMasterTable('users')" class="master-nav-btn px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900" data-master="users">Users</button>
+            </div>
+            <button onclick="openAddMasterRecordModal()" class="px-3 py-1.5 text-xs font-bold text-white bg-forest-900 hover:bg-forest-800 rounded-lg shadow-sm transition-colors flex items-center">
+              <i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i> Add Company
+            </button>
+          </div>
+
+          <!-- Dynamic Master Table -->
+          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-sm text-slate-900" id="master-table-title">Companies</h3>
+              <span class="text-xs text-slate-500" id="master-table-count">Loading...</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead id="master-table-thead" class="text-slate-500 border-b border-slate-200 bg-slate-50/70"></thead>
+                <tbody id="master-table-tbody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==============================================================
+             STEP 2: FARM PLOTS & MAP (Map on top, table below)
+             ============================================================== -->
+        <div id="tab-plots-map" class="tab-pane hidden space-y-5">
+          
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">2. Farm Plots: where was it grown?</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> A plot is a piece of farmland with GPS location. EU law needs the exact location of every plot to prove it was not cleared after 31 Dec 2020.
+                </div>
+              </div>
+            </div>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: plots, plot_polygon_points, plot_production_records</span>
+              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              </button>
+            </div>
+          </div>
+
+          <!-- Top Action Bar -->
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="text-xs text-slate-600 flex items-center space-x-2">
+              <i data-lucide="info" class="w-4 h-4 text-emerald-600"></i>
+              <span><strong>Rule:</strong> Plots bigger than 4 hectares need a boundary (polygon). Smaller plots need one GPS point.</span>
+            </div>
+            <button onclick="openAddPlotModal()" class="px-3.5 py-1.5 text-xs font-bold text-white bg-forest-900 hover:bg-forest-800 rounded-lg shadow-sm transition-colors flex items-center">
+              <i data-lucide="plus" class="w-3.5 h-3.5 mr-1.5"></i> Add Farm Plot
+            </button>
+          </div>
+
+          <!-- MAP ON TOP (Split with Inspector) -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
             <!-- Map Container -->
-            <div class="lg:col-span-2 rounded-xl bg-white border border-slate-200 overflow-hidden shadow-sm flex flex-col h-[520px]">
-              <div class="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs font-medium text-slate-600">
+            <div class="lg:col-span-2 rounded-xl bg-white border border-slate-200 overflow-hidden shadow-sm flex flex-col h-[480px]">
+              <div class="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs font-semibold text-slate-700">
                 <div class="flex items-center space-x-2">
-                  <i data-lucide="globe" class="w-4 h-4 text-emerald-600"></i>
-                  <span>Global Plot Geolocation Overlay</span>
+                  <i data-lucide="map" class="w-4 h-4 text-emerald-600"></i>
+                  <span>World Map of Farm Plots</span>
                 </div>
                 <div class="flex items-center space-x-4 text-[11px]">
-                  <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5"></span> Compliant</span>
-                  <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1.5"></span> Deforested / High Risk</span>
+                  <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5"></span> Safe</span>
+                  <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5"></span> Waiting</span>
+                  <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1.5"></span> Blocked</span>
                 </div>
               </div>
               <div id="plots-leaflet-map" class="flex-1 w-full z-10"></div>
             </div>
 
             <!-- Plot Side Inspector -->
-            <div class="rounded-xl bg-white border border-slate-200 p-5 shadow-sm flex flex-col h-[520px] overflow-y-auto">
+            <div class="rounded-xl bg-white border border-slate-200 p-5 shadow-sm flex flex-col h-[480px] overflow-y-auto">
               <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 class="font-bold text-sm text-slate-900">Plot Inspector</h3>
+                <h3 class="font-bold text-sm text-slate-900">Plot Details</h3>
                 <span id="selected-plot-badge" class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-600 rounded">Click a plot</span>
               </div>
-
               <div id="plot-inspector-content" class="mt-4 space-y-4 text-xs text-slate-600 flex-1">
                 <div class="text-center py-16 text-slate-400">
                   <i data-lucide="map-pin" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-                  <p>Click any marker or polygon on the map or select a plot below to inspect satellite check records and verified legality documents.</p>
+                  <p>Click any farm plot on the map or in the table below to see who owns it, satellite scans, and legal papers.</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Plots Data Table -->
+          <!-- TABLE BELOW -->
           <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-bold text-sm text-slate-900">Registered Land Parcels</h3>
-              <input type="text" id="plots-table-search" oninput="filterPlotsTable()" placeholder="Search plots by region, country, owner..." class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg w-72 focus:outline-none focus:border-emerald-500">
+            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900">All Registered Farm Plots</h3>
+                <p class="text-xs text-slate-500">Every piece of land registered in our database.</p>
+              </div>
+              <input type="text" id="plots-table-search" oninput="filterPlotsTable()" placeholder="Search plots by name, owner, country..." class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg w-64 focus:outline-none focus:border-emerald-500">
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs">
                 <thead>
-                  <tr class="text-slate-400 border-b border-slate-200 bg-slate-50/50">
-                    <th class="py-2.5 px-3 font-semibold">Plot ID</th>
-                    <th class="py-2.5 px-3 font-semibold">Region &amp; Parcel</th>
-                    <th class="py-2.5 px-3 font-semibold">Owner (Farmer/Co-op)</th>
+                  <tr class="text-slate-500 border-b border-slate-200 bg-slate-50/70">
+                    <th class="py-2.5 px-3 font-semibold col-database">plot_id</th>
+                    <th class="py-2.5 px-3 font-semibold">Plot Name</th>
+                    <th class="py-2.5 px-3 font-semibold">Owner</th>
                     <th class="py-2.5 px-3 font-semibold">Country</th>
-                    <th class="py-2.5 px-3 font-semibold">Commodity</th>
-                    <th class="py-2.5 px-3 font-semibold">Area (ha)</th>
-                    <th class="py-2.5 px-3 font-semibold">Geometry</th>
-                    <th class="py-2.5 px-3 font-semibold">Deforestation Status</th>
+                    <th class="py-2.5 px-3 font-semibold">Crop</th>
+                    <th class="py-2.5 px-3 font-semibold">Size (hectares)</th>
+                    <th class="py-2.5 px-3 font-semibold">Shape</th>
+                    <th class="py-2.5 px-3 font-semibold">Status</th>
                     <th class="py-2.5 px-3 font-semibold">Actions</th>
                   </tr>
                 </thead>
@@ -441,74 +629,86 @@
               </table>
             </div>
           </div>
+
         </div>
 
         <!-- ==============================================================
-             3. TAB: BATCHES & TRACEABILITY
+             STEP 3: PRODUCT BATCHES & TRACK A PRODUCT
              ============================================================== -->
-        <div id="tab-batches-trace" class="tab-pane hidden space-y-6">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h2 class="text-lg font-bold text-slate-900">Batches &amp; Multi-Tier Lineage Trace</h2>
-              <p class="text-xs text-slate-500">Recursive ancestor and descendant resolution with cut-off validation.</p>
+        <div id="tab-batches-trace" class="tab-pane hidden space-y-5">
+          
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">3. Product Batches: tracking products from farm to buyer</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> A batch is one lot of product, e.g. 8,000 kg of cocoa. This tool tracks every step it took across companies to verify it is safe.
+                </div>
+              </div>
             </div>
-            <div class="flex items-center space-x-3">
-              <button onclick="openCreateBatchModal()" class="inline-flex items-center px-3.5 py-2 text-xs font-semibold text-white bg-forest-900 hover:bg-forest-800 rounded-lg shadow-sm transition-all">
-                <i data-lucide="plus" class="w-3.5 h-3.5 mr-1.5"></i>
-                Create New Batch
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: batches, batch_lineage, batch_plot_sources</span>
+              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
               </button>
             </div>
           </div>
 
-          <!-- Trace Search & Interactive Tree Visualizer -->
-          <div class="p-6 rounded-xl bg-white border border-slate-200 shadow-sm space-y-6">
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-slate-100">
-              <div class="w-full sm:w-auto flex-1 flex items-center space-x-3">
-                <label class="text-xs font-bold text-slate-700 whitespace-nowrap">Trace Target Batch:</label>
-                <select id="trace-batch-select" onchange="runBatchTrace(this.value)" class="px-3 py-2 text-xs font-mono font-medium border border-slate-300 rounded-lg bg-slate-50 focus:outline-none focus:border-emerald-500 w-full sm:w-80">
-                  <option value="NL-CHOC-2026-0044">NL-CHOC-2026-0044 (EU Chocolate - Ghana Cocoa Chain)</option>
-                  <option value="NL-FEED-SOY-2026-90">NL-FEED-SOY-2026-90 (EU Animal Feed - Brazil Soya Chain)</option>
-                  <option value="DE-OLEO-PALM-2026-03">DE-OLEO-PALM-2026-03 (DE Refined Palm - Indonesia Chain)</option>
-                  <option value="IN-COF-ROAST-2026-12">IN-COF-ROAST-2026-12 (India Coffee Chain)</option>
-                  <option value="BR-SOY-FAIL-2026-09">BR-SOY-FAIL-2026-09 (Deforested Violation Batch)</option>
+          <!-- HERO FEATURE: TRACK A PRODUCT -->
+          <div class="p-6 rounded-xl bg-white border border-slate-200 shadow-sm space-y-5" id="hero-track-container">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+              <div class="flex-1 w-full sm:w-auto">
+                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 block mb-1">Hero Feature</span>
+                <h2 class="text-base font-bold text-slate-900">Track a Product: See the Journey</h2>
+                <p class="text-xs text-slate-500">Pick any batch or enter a batch code to see its full path to the farms.</p>
+              </div>
+              <div class="flex items-center space-x-2">
+                <button onclick="printTraceCertificate()" class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors flex items-center">
+                  <i data-lucide="download" class="w-3.5 h-3.5 mr-1.5"></i> Download Trace Certificate
+                </button>
+              </div>
+            </div>
+
+            <!-- Search box & buttons -->
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+              <div class="w-full sm:flex-1 relative">
+                <select id="trace-batch-select" onchange="runBatchTrace(this.value)" class="w-full px-3 py-2 text-xs font-mono font-medium border border-slate-300 rounded-lg bg-slate-50 focus:outline-none focus:border-emerald-500">
+                  <option value="NL-CHOC-2026-0044">NL-CHOC-2026-0044 &mdash; Chocolate Bar (Ghana Cocoa Chain)</option>
+                  <option value="NL-FEED-SOY-2026-90">NL-FEED-SOY-2026-90 &mdash; Animal Feed (Brazil Soya Chain)</option>
+                  <option value="DE-OLEO-PALM-2026-03">DE-OLEO-PALM-2026-03 &mdash; Palm Oil (Indonesia Palm Chain)</option>
+                  <option value="IN-COF-ROAST-2026-12">IN-COF-ROAST-2026-12 &mdash; Roasted Coffee (India Coffee Chain)</option>
+                  <option value="BR-SOY-FAIL-2026-09">BR-SOY-FAIL-2026-09 &mdash; Blocked Batch (Deforested Land)</option>
                 </select>
-                <button onclick="runBatchTrace(document.getElementById('trace-batch-select').value)" class="px-3 py-2 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors flex items-center">
-                  <i data-lucide="search" class="w-3.5 h-3.5 mr-1.5"></i> Trace
-                </button>
               </div>
-
-              <div class="flex items-center space-x-3">
-                <button onclick="printTraceCertificate()" class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors flex items-center">
-                  <i data-lucide="printer" class="w-3.5 h-3.5 mr-1.5"></i>
-                  Print Trace Certificate
-                </button>
-              </div>
+              <button onclick="runBatchTrace(document.getElementById('trace-batch-select').value, 'backward')" class="px-3.5 py-2 text-xs font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors flex items-center justify-center w-full sm:w-auto">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5 mr-1.5"></i> Trace back to farms
+              </button>
+              <button onclick="runBatchTrace(document.getElementById('trace-batch-select').value, 'forward')" class="px-3.5 py-2 text-xs font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800 transition-colors flex items-center justify-center w-full sm:w-auto">
+                <span>Trace forward to buyers</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1.5"></i>
+              </button>
             </div>
 
-            <!-- Trace Tree Graph Renderer -->
-            <div id="trace-tree-canvas" class="min-h-[280px] p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col justify-center">
-              <div class="text-center py-12 text-slate-400">
+            <!-- Visual Journey Visualizer (Farm -> Co-op -> Processor -> Exporter -> EU Importer) -->
+            <div id="trace-tree-canvas" class="min-h-[220px] p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col justify-center">
+              <div class="text-center py-10 text-slate-400">
                 <i data-lucide="git-branch" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-                <p>Select a batch and click Trace to resolve the full multi-tier supply chain lineage.</p>
+                <p>Click &ldquo;Trace back to farms&rdquo; to draw the step-by-step visual journey.</p>
               </div>
             </div>
 
-            <!-- Resolved Plots & Transactions Tabs -->
-            <div id="trace-details-container" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
-              <!-- Linked Origin Plots -->
+            <!-- Resolved Plots & Details Container -->
+            <div id="trace-details-container" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-5 pt-3 border-t border-slate-100">
               <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200">
-                <h4 class="font-bold text-xs text-slate-900 uppercase tracking-wider mb-3 flex items-center">
+                <h4 class="font-bold text-xs text-slate-900 uppercase tracking-wider mb-2 flex items-center">
                   <i data-lucide="map-pin" class="w-4 h-4 mr-1.5 text-emerald-600"></i>
-                  Resolved Origin Farm Plots (Cut-off 2020 Check)
+                  Source Farm Plots
                 </h4>
                 <div id="trace-plots-list" class="space-y-2 text-xs text-slate-700"></div>
               </div>
-
-              <!-- Custody Transactions & Logistics -->
               <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200">
-                <h4 class="font-bold text-xs text-slate-900 uppercase tracking-wider mb-3 flex items-center">
-                  <i data-lucide="ship" class="w-4 h-4 mr-1.5 text-blue-600"></i>
-                  Custody Transfers &amp; Maritime Voyages
+                <h4 class="font-bold text-xs text-slate-900 uppercase tracking-wider mb-2 flex items-center">
+                  <i data-lucide="truck" class="w-4 h-4 mr-1.5 text-blue-600"></i>
+                  Custody Transfers &amp; Dates
                 </h4>
                 <div id="trace-txns-list" class="space-y-2 text-xs text-slate-700"></div>
               </div>
@@ -517,494 +717,800 @@
 
           <!-- Batches Table -->
           <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-bold text-sm text-slate-900">All Registered Batches</h3>
-              <span class="text-xs text-slate-500 font-mono" id="batches-count-pill">15 Batches</span>
+            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900">All Product Batches</h3>
+                <p class="text-xs text-slate-500">Every registered lot with weight, company, and safety status.</p>
+              </div>
+              <button onclick="openCreateBatchModal()" class="px-3.5 py-1.5 text-xs font-bold text-white bg-forest-900 hover:bg-forest-800 rounded-lg shadow-sm transition-colors flex items-center">
+                <i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i> Create Batch
+              </button>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs">
                 <thead>
-                  <tr class="text-slate-400 border-b border-slate-200 bg-slate-50/50">
+                  <tr class="text-slate-500 border-b border-slate-200 bg-slate-50/70">
+                    <th class="py-2.5 px-3 font-semibold col-database">batch_id</th>
                     <th class="py-2.5 px-3 font-semibold">Batch Code</th>
-                    <th class="py-2.5 px-3 font-semibold">Commodity</th>
-                    <th class="py-2.5 px-3 font-semibold">Quantity</th>
-                    <th class="py-2.5 px-3 font-semibold">Created By</th>
+                    <th class="py-2.5 px-3 font-semibold">Product</th>
+                    <th class="py-2.5 px-3 font-semibold">Weight</th>
+                    <th class="py-2.5 px-3 font-semibold">Company</th>
                     <th class="py-2.5 px-3 font-semibold">Type</th>
-                    <th class="py-2.5 px-3 font-semibold">Compliance Status</th>
-                    <th class="py-2.5 px-3 font-semibold">Risk Result</th>
-                    <th class="py-2.5 px-3 font-semibold">DDS Statement</th>
+                    <th class="py-2.5 px-3 font-semibold">Status</th>
                     <th class="py-2.5 px-3 font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="batches-table-tbody" class="divide-y divide-slate-100 text-slate-700">
-                  <tr><td colspan="9" class="py-4 text-center text-slate-400">Loading batches...</td></tr>
+                  <tr><td colspan="8" class="py-4 text-center text-slate-400">Loading batches...</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
+
         </div>
 
         <!-- ==============================================================
-             4. TAB: RISK & DUE DILIGENCE (DDS)
+             STEP 4: SAFETY CHECK (was Risk Assessment)
              ============================================================== -->
-        <div id="tab-risk-diligence" class="tab-pane hidden space-y-6">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div id="tab-safety-check" class="tab-pane hidden space-y-5">
+          
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">4. Safety Check: are products legal &amp; forest-friendly?</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> We run 3 simple questions to verify every batch before it can be imported into the EU.
+                </div>
+              </div>
+            </div>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: risk_assessments, mitigation_actions</span>
+              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              </button>
+            </div>
+          </div>
+
+          <!-- Top Action Bar -->
+          <div class="flex items-center justify-between flex-wrap gap-3">
             <div>
-              <h2 class="text-lg font-bold text-slate-900">3-Step Due Diligence &amp; Statement Generator</h2>
-              <p class="text-xs text-slate-500">Step 1: Info Collection &rarr; Step 2: Risk Assessment &rarr; Step 3: Mitigation &amp; DDS Submission.</p>
+              <h2 class="text-sm font-bold text-slate-900">3-Question Safety Checklist</h2>
+              <p class="text-xs text-slate-500">Every batch must answer YES to pass.</p>
             </div>
-            <div class="flex items-center space-x-3">
-              <button onclick="openRiskAssessmentModal()" class="inline-flex items-center px-3.5 py-2 text-xs font-semibold text-white bg-forest-900 hover:bg-forest-800 rounded-lg shadow-sm transition-all">
-                <i data-lucide="activity" class="w-3.5 h-3.5 mr-1.5"></i>
-                Run Batch Risk Assessment
-              </button>
-              <button onclick="openGenerateDDSModal()" class="inline-flex items-center px-3.5 py-2 text-xs font-semibold text-forest-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-sm transition-all">
-                <i data-lucide="file-plus" class="w-3.5 h-3.5 mr-1.5"></i>
-                Generate EU DDS Statement
-              </button>
-            </div>
+            <button onclick="openRiskAssessmentModal()" class="px-3.5 py-1.5 text-xs font-bold text-white bg-forest-900 hover:bg-forest-800 rounded-lg shadow-sm transition-colors flex items-center">
+              <i data-lucide="shield" class="w-3.5 h-3.5 mr-1.5"></i> Run Safety Check on a Batch
+            </button>
           </div>
 
-          <!-- 3-Step Due Diligence Visual Workflow Cards -->
+          <!-- 3-Question Explanation Cards -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm relative">
-              <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Step 1</div>
-              <div class="font-bold text-slate-900 text-sm">Information Collection</div>
-              <p class="text-xs text-slate-500 mt-1">Collect HS code, exact 6-decimal geolocation, production dates, and verified legality titles.</p>
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+              <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs mb-2">1</div>
+              <h4 class="font-bold text-sm text-slate-900">1. Is the country risky?</h4>
+              <p class="text-xs text-slate-500 mt-1">Checks if the production country has high levels of illegal deforestation.</p>
             </div>
-            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm relative">
-              <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Step 2</div>
-              <div class="font-bold text-slate-900 text-sm">Risk Assessment</div>
-              <p class="text-xs text-slate-500 mt-1">Evaluate Country (Art. 29), Plot Deforestation status, and Supplier compliance to derive Risk Result.</p>
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+              <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs mb-2">2</div>
+              <h4 class="font-bold text-sm text-slate-900">2. Was farm land cleared after 2020?</h4>
+              <p class="text-xs text-slate-500 mt-1">Satellite scans verify the forest canopy has been intact since 31 Dec 2020.</p>
             </div>
-            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm relative">
-              <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Step 3</div>
-              <div class="font-bold text-slate-900 text-sm">Risk Mitigation &amp; DDS</div>
-              <p class="text-xs text-slate-500 mt-1">If non-negligible, log audits/satellite checks. Generate Due Diligence Statement for EU Customs.</p>
+            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+              <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs mb-2">3</div>
+              <h4 class="font-bold text-sm text-slate-900">3. Are legal papers verified?</h4>
+              <p class="text-xs text-slate-500 mt-1">Land ownership titles and environmental permits must be verified by local authorities.</p>
             </div>
           </div>
 
-          <!-- Due Diligence Statements List -->
+          <!-- Safety Checks Table -->
           <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-bold text-sm text-slate-900">Submitted Due Diligence Statements (DDS)</h3>
-              <span class="text-xs text-slate-500 font-mono">Traces System Interfaced</span>
+            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900">Batch Safety Check Results</h3>
+                <p class="text-xs text-slate-500">Big and clear outcomes: SAFE (green) or NEEDS ACTION (red).</p>
+              </div>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs">
                 <thead>
-                  <tr class="text-slate-400 border-b border-slate-200 bg-slate-50/50">
-                    <th class="py-2.5 px-3 font-semibold">DDS Reference Number</th>
-                    <th class="py-2.5 px-3 font-semibold">Operator Company</th>
-                    <th class="py-2.5 px-3 font-semibold">EORI Number</th>
-                    <th class="py-2.5 px-3 font-semibold">Linked Batches</th>
-                    <th class="py-2.5 px-3 font-semibold">Total Quantity (kg)</th>
-                    <th class="py-2.5 px-3 font-semibold">Submission Date</th>
+                  <tr class="text-slate-500 border-b border-slate-200 bg-slate-50/70">
+                    <th class="py-2.5 px-3 font-semibold col-database">assessment_id</th>
+                    <th class="py-2.5 px-3 font-semibold">Batch Code</th>
+                    <th class="py-2.5 px-3 font-semibold">Product</th>
+                    <th class="py-2.5 px-3 font-semibold">1. Country Safe?</th>
+                    <th class="py-2.5 px-3 font-semibold">2. Forest Intact?</th>
+                    <th class="py-2.5 px-3 font-semibold">3. Papers Checked?</th>
+                    <th class="py-2.5 px-3 font-semibold">Risk score (0=safest, 100=riskiest)</th>
+                    <th class="py-2.5 px-3 font-semibold">Final Result</th>
+                    <th class="py-2.5 px-3 font-semibold">What to do next</th>
+                  </tr>
+                </thead>
+                <tbody id="assessments-table-tbody" class="divide-y divide-slate-100 text-slate-700">
+                  <tr><td colspan="9" class="py-4 text-center text-slate-400">Loading safety checks...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==============================================================
+             STEP 5: EU REPORT (was Due Diligence Statement)
+             ============================================================== -->
+        <div id="tab-eu-report" class="tab-pane hidden space-y-5">
+          
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">5. EU Report: official compliance statement</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> Before selling in the EU, the first company must send an EU Compliance Report (also called DDS) with a reference number to prove the goods are clean.
+                </div>
+              </div>
+            </div>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: due_diligence_statements, dds_batches</span>
+              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              </button>
+            </div>
+          </div>
+
+          <!-- Top Action Bar -->
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Submitted EU Compliance Reports</h2>
+              <p class="text-xs text-slate-500">Only batches that passed the Safety Check can be included in a report.</p>
+            </div>
+            <button onclick="openGenerateDDSModal()" class="px-3.5 py-1.5 text-xs font-bold text-forest-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-sm transition-colors flex items-center">
+              <i data-lucide="file-plus" class="w-3.5 h-3.5 mr-1.5"></i> Create EU Report
+            </button>
+          </div>
+
+          <!-- EU Reports Table -->
+          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="text-slate-500 border-b border-slate-200 bg-slate-50/70">
+                    <th class="py-2.5 px-3 font-semibold">Report number</th>
+                    <th class="py-2.5 px-3 font-semibold">Company</th>
+                    <th class="py-2.5 px-3 font-semibold col-database">Tax ID (EORI)</th>
+                    <th class="py-2.5 px-3 font-semibold">Batches included</th>
+                    <th class="py-2.5 px-3 font-semibold">Total kg</th>
+                    <th class="py-2.5 px-3 font-semibold">Date</th>
                     <th class="py-2.5 px-3 font-semibold">Status</th>
                   </tr>
                 </thead>
                 <tbody id="dds-table-tbody" class="divide-y divide-slate-100 text-slate-700">
-                  <tr><td colspan="7" class="py-4 text-center text-slate-400">Loading statements...</td></tr>
+                  <tr><td colspan="7" class="py-4 text-center text-slate-400">Loading reports...</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- Risk Assessments & Mitigation Actions -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-            <h3 class="font-bold text-sm text-slate-900 mb-4">Batch Risk Assessments &amp; Active Mitigations</h3>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead>
-                  <tr class="text-slate-400 border-b border-slate-200 bg-slate-50/50">
-                    <th class="py-2.5 px-3 font-semibold">Assessment ID</th>
-                    <th class="py-2.5 px-3 font-semibold">Batch Code</th>
-                    <th class="py-2.5 px-3 font-semibold">Commodity</th>
-                    <th class="py-2.5 px-3 font-semibold">Country Risk</th>
-                    <th class="py-2.5 px-3 font-semibold">Plot Risk</th>
-                    <th class="py-2.5 px-3 font-semibold">Deforestation</th>
-                    <th class="py-2.5 px-3 font-semibold">Score (0-100)</th>
-                    <th class="py-2.5 px-3 font-semibold">Risk Result</th>
-                    <th class="py-2.5 px-3 font-semibold">Mitigations</th>
-                    <th class="py-2.5 px-3 font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="assessments-table-tbody" class="divide-y divide-slate-100 text-slate-700">
-                  <tr><td colspan="10" class="py-4 text-center text-slate-400">Loading assessments...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
 
         <!-- ==============================================================
-             5. TAB: MASTER DATA & ACTORS
-             ============================================================== -->
-        <div id="tab-master-data" class="tab-pane hidden space-y-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-lg font-bold text-slate-900">Master Data &amp; Supply Chain Actors</h2>
-              <p class="text-xs text-slate-500">3NF relational entities with primary/foreign key constraints.</p>
-            </div>
-            <div class="flex items-center space-x-2">
-              <button onclick="loadMasterTable('organizations')" class="master-nav-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-forest-900 text-white" data-master="organizations">Organizations</button>
-              <button onclick="loadMasterTable('commodities')" class="master-nav-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-master="commodities">Commodities</button>
-              <button onclick="loadMasterTable('countries')" class="master-nav-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-master="countries">Countries</button>
-              <button onclick="loadMasterTable('legality_documents')" class="master-nav-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-master="legality_documents">Legality Docs</button>
-              <button onclick="loadMasterTable('users')" class="master-nav-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-master="users">Users</button>
-            </div>
-          </div>
-
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-bold text-sm text-slate-900" id="master-table-title">Organizations (Supply Chain Operators)</h3>
-              <button onclick="openAddMasterRecordModal()" class="px-3 py-1.5 text-xs font-semibold text-white bg-forest-900 hover:bg-forest-800 rounded-lg transition-colors flex items-center">
-                <i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i> Add Record
-              </button>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead id="master-table-thead" class="text-slate-400 border-b border-slate-200 bg-slate-50/50"></thead>
-                <tbody id="master-table-tbody" class="divide-y divide-slate-100 text-slate-700"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- ==============================================================
-             6. TAB: DATABASE ARCHITECTURE - ER DIAGRAM & SCHEMA STUDIO
+             SEE THE DATABASE: 1. TABLE DIAGRAM
              ============================================================== -->
         <div id="tab-db-er-diagram" class="tab-pane hidden space-y-4">
-          <!-- Header & Toolbar -->
-          <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <div>
-              <div class="flex items-center space-x-2">
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">Live 3NF Model</span>
-                <h2 class="text-base font-bold text-slate-900">Entity Relationship (ER) Visual Studio</h2>
+          
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">Table Diagram: how tables connect</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> Each box is a table. Each line shows how tables connect. Click any table to see a 1-sentence explanation and example row.
+                </div>
               </div>
-              <p class="text-xs text-slate-500 mt-0.5">18 Normalized Tables &bull; Real-Time Foreign Key Links &bull; Draggable Tables &bull; Interactive Zoom &amp; Pan</p>
             </div>
-            
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: 18 tables in 3rd Normal Form (3NF)</span>
+              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              </button>
+            </div>
+          </div>
+
+          <!-- Toolbar & Controls -->
+          <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+            <!-- Plain English Legend -->
+            <div class="flex items-center space-x-3 text-xs">
+              <span class="flex items-center font-semibold text-slate-700">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                Key = unique ID of a row
+              </span>
+              <span class="flex items-center font-semibold text-slate-700">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-500 mr-1.5"></span>
+                Link = points to a row in another table
+              </span>
+            </div>
+
             <div class="flex flex-wrap items-center gap-2">
-              <!-- Quick Jump Table Select -->
+              <!-- Focus Table Select -->
               <div class="flex items-center space-x-1.5">
-                <label class="text-xs font-semibold text-slate-600">Focus Table:</label>
-                <select id="er-focus-table-select" onchange="focusERTable(this.value)" class="px-2.5 py-1.5 text-xs font-mono font-medium border border-slate-300 rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:border-emerald-500">
-                  <option value="">-- Jump to Table --</option>
+                <label class="text-xs font-semibold text-slate-600">Focus:</label>
+                <select id="er-focus-table-select" onchange="focusERTable(this.value)" class="px-2.5 py-1 text-xs font-mono border border-slate-300 rounded-lg bg-slate-50 text-slate-800 focus:outline-none">
+                  <option value="">-- Pick Table --</option>
                 </select>
               </div>
 
-              <!-- View Mode Toggle -->
+              <!-- View switch: Studio / Cards / Mermaid -->
               <div class="bg-slate-100 p-0.5 rounded-lg border border-slate-200 flex items-center">
-                <button onclick="switchERView('studio')" id="er-view-btn-studio" class="px-3 py-1.5 text-xs font-bold bg-white text-forest-900 shadow-sm rounded-md transition-all flex items-center">
-                  <i data-lucide="network" class="w-3.5 h-3.5 mr-1.5 text-emerald-600"></i>
-                  Interactive Canvas Studio
-                </button>
-                <button onclick="switchERView('cards')" id="er-view-btn-cards" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all flex items-center">
-                  <i data-lucide="layout-grid" class="w-3.5 h-3.5 mr-1.5 text-blue-600"></i>
-                  Grid Cards View
-                </button>
-                <button onclick="switchERView('mermaid')" id="er-view-btn-mermaid" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all flex items-center">
-                  <i data-lucide="code" class="w-3.5 h-3.5 mr-1.5 text-purple-600"></i>
-                  Raw Mermaid Code
-                </button>
+                <button onclick="switchERView('studio')" id="er-view-btn-studio" class="px-2.5 py-1 text-xs font-bold bg-white text-forest-900 shadow-sm rounded-md transition-all">Visual Diagram</button>
+                <button onclick="switchERView('cards')" id="er-view-btn-cards" class="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all">Table Cards</button>
+                <button onclick="switchERView('mermaid')" id="er-view-btn-mermaid" class="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all">SQL Code</button>
               </div>
 
               <!-- Zoom Controls -->
-              <div id="er-zoom-controls" class="flex items-center space-x-1 bg-slate-100 border border-slate-300 rounded-lg p-0.5">
-                <button onclick="zoomERDiagram(0.25)" title="Zoom In" class="p-1.5 text-slate-700 hover:bg-white hover:shadow-sm rounded">
-                  <i data-lucide="zoom-in" class="w-4 h-4"></i>
-                </button>
-                <button onclick="zoomERDiagram(-0.25)" title="Zoom Out" class="p-1.5 text-slate-700 hover:bg-white hover:shadow-sm rounded">
-                  <i data-lucide="zoom-out" class="w-4 h-4"></i>
-                </button>
-                <button onclick="resetERZoom()" title="Reset Zoom (100%)" class="px-2.5 py-1 text-xs font-mono font-bold text-slate-700 hover:bg-white hover:shadow-sm rounded">
-                  <span id="er-zoom-level-label">100%</span>
-                </button>
-                <button onclick="fitAllERTables()" title="Auto Fit All Tables" class="p-1.5 text-slate-700 hover:bg-white hover:shadow-sm rounded">
-                  <i data-lucide="maximize-2" class="w-4 h-4"></i>
-                </button>
+              <div class="flex items-center space-x-1 bg-slate-100 border border-slate-300 rounded-lg p-0.5">
+                <button onclick="zoomERDiagram(0.2)" title="Zoom In" class="p-1 text-slate-700 hover:bg-white rounded"><i data-lucide="zoom-in" class="w-3.5 h-3.5"></i></button>
+                <button onclick="zoomERDiagram(-0.2)" title="Zoom Out" class="p-1 text-slate-700 hover:bg-white rounded"><i data-lucide="zoom-out" class="w-3.5 h-3.5"></i></button>
+                <button onclick="resetERZoom()" title="Reset Zoom" class="px-1.5 text-xs font-mono font-bold text-slate-700 hover:bg-white rounded"><span id="er-zoom-level-label">100%</span></button>
               </div>
-
-              <button onclick="renderERDiagram()" class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-sm transition-colors flex items-center">
-                <i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1.5"></i> Reset Layout
-              </button>
             </div>
           </div>
 
-          <!-- View 1: Interactive Canvas Studio (dbdiagram style with large crisp tables, connectors & pan/zoom) -->
-          <div id="er-studio-view" class="relative rounded-2xl bg-[#0F172A] border border-slate-800 shadow-2xl overflow-hidden h-[750px] select-none">
-            <!-- Studio Canvas Watermark & Legend -->
-            <div class="absolute top-4 left-4 z-20 flex items-center space-x-3 pointer-events-none">
-              <div class="px-3 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-200 text-xs font-mono backdrop-blur-md flex items-center space-x-3 shadow-lg">
-                <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5"></span> PK: Primary Key</span>
-                <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-blue-400 mr-1.5"></span> FK: Foreign Key</span>
-                <span class="text-slate-400">&bull; Scroll to Zoom &bull; Drag Canvas / Drag Tables</span>
-              </div>
-            </div>
-
-            <!-- Studio Canvas Container -->
+          <!-- Studio Canvas -->
+          <div id="er-studio-view" class="relative rounded-2xl bg-[#0F172A] border border-slate-800 shadow-2xl overflow-hidden h-[620px] select-none">
             <div id="er-canvas-viewport" class="w-full h-full relative overflow-hidden cursor-grab active:cursor-grabbing">
               <div id="er-canvas-stage" class="absolute inset-0 origin-top-left" style="transform: translate(0px, 0px) scale(1);">
-                <!-- SVG Connectors Layer -->
-                <svg id="er-svg-lines" class="absolute inset-0 w-[6000px] h-[6000px] pointer-events-none z-10">
-                  <defs>
-                    <marker id="er-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                      <path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8" />
-                    </marker>
-                    <marker id="er-dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6">
-                      <circle cx="5" cy="5" r="4" fill="#34D399" />
-                    </marker>
-                  </defs>
-                  <g id="er-svg-paths-group"></g>
-                </svg>
-
-                <!-- HTML Table Nodes Layer -->
-                <div id="er-nodes-layer" class="absolute inset-0 w-[6000px] h-[6000px] z-20"></div>
+                <svg id="er-svg-lines" class="absolute inset-0 w-[5000px] h-[5000px] pointer-events-none z-10"></svg>
+                <div id="er-nodes-layer" class="absolute inset-0 w-[5000px] h-[5000px] z-20 pointer-events-auto"></div>
               </div>
             </div>
           </div>
 
-          <!-- View 2: Schema Studio Cards (High Legibility Grid View) -->
-          <div id="er-cards-view" class="hidden space-y-4">
-            <div class="flex items-center justify-between">
-              <input type="text" id="er-cards-search" oninput="filterERCards(this.value)" placeholder="Search tables or columns (e.g. batch_id, plot, geo_type)..." class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg w-80 bg-white focus:outline-none focus:border-emerald-500 shadow-sm">
-              <span class="text-xs text-slate-500 font-mono" id="er-cards-count-badge">18 Tables &bull; 3NF Validated</span>
-            </div>
-            <div id="er-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+          <!-- View 2: Cards Grid -->
+          <div id="er-cards-view" class="hidden">
+            <div id="er-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
           </div>
 
-          <!-- View 3: Raw Mermaid Code Inspector -->
-          <div id="er-mermaid-view" class="hidden p-5 bg-slate-900 rounded-xl border border-slate-800 text-emerald-300 font-mono text-xs overflow-x-auto">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3 text-slate-400">
-              <span>Auto-generated Live Mermaid Syntax</span>
-              <button onclick="copyMermaidCode()" class="text-xs text-emerald-400 hover:text-white flex items-center">
-                <i data-lucide="copy" class="w-3.5 h-3.5 mr-1"></i> Copy Code
+          <!-- View 3: Mermaid Schema Code -->
+          <div id="er-mermaid-view" class="hidden bg-slate-900 rounded-xl p-4 border border-slate-800 text-xs font-mono text-emerald-400 overflow-x-auto">
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+              <span class="text-slate-400 font-sans">Full Schema Mermaid Definition</span>
+              <button onclick="copyMermaidCode()" class="px-2.5 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-white rounded">Copy Code</button>
+            </div>
+            <pre id="er-mermaid-code-pre" class="max-h-[500px] overflow-y-auto"></pre>
+          </div>
+
+        </div>
+
+        <!-- ==============================================================
+             SEE THE DATABASE: 2. DATA TABLES
+             ============================================================== -->
+        <div id="tab-db-table-browser" class="tab-pane hidden space-y-4">
+          
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">Data Tables: browse raw database rows</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> View the real data stored in SQLite. Click any link number (foreign key) to immediately jump to the related record in the other table.
+                </div>
+              </div>
+            </div>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Viewing table: <span id="db-chip-table-name">batches</span></span>
+              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
               </button>
             </div>
-            <pre id="er-mermaid-code-pre" class="leading-relaxed"></pre>
-          </div>
-        </div>
-
-        <!-- ==============================================================
-             7. TAB: DATABASE ARCHITECTURE - LIVE TABLE BROWSER
-             ============================================================== -->
-        <div id="tab-db-table-browser" class="tab-pane hidden space-y-6">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h2 class="text-lg font-bold text-slate-900">Live Database Table Browser (DBeaver / Supabase Style)</h2>
-              <p class="text-xs text-slate-500">Direct tabular inspection with column datatypes, primary keys, foreign key hyperlinking, and search.</p>
-            </div>
-            <div class="flex items-center space-x-2">
-              <label class="text-xs font-bold text-slate-700">Table:</label>
-              <select id="db-browser-table-select" onchange="loadTableBrowserData(this.value, 1)" class="px-3 py-1.5 text-xs font-mono font-medium border border-slate-300 rounded-lg bg-slate-50 focus:outline-none focus:border-emerald-500">
-                <!-- Populated dynamically -->
-              </select>
-            </div>
           </div>
 
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-4">
-            <!-- Table Toolbar -->
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pb-3 border-b border-slate-100 text-xs">
-              <div class="flex items-center space-x-3 w-full sm:w-auto">
-                <input type="text" id="db-browser-search" onkeydown="if(event.key==='Enter') executeTableBrowserSearch()" placeholder="Filter rows in table..." class="px-3 py-1.5 border border-slate-200 rounded-lg w-64 focus:outline-none focus:border-emerald-500">
-                <button onclick="executeTableBrowserSearch()" class="px-3 py-1.5 font-semibold bg-forest-900 text-white rounded-lg">Filter</button>
-              </div>
-              <div class="flex items-center space-x-4 text-slate-500">
-                <span id="db-browser-rowcount-label">- rows</span>
-                <span id="db-browser-latency-label" class="font-mono text-emerald-600">- ms</span>
-              </div>
-            </div>
-
-            <!-- Table Container -->
-            <div class="overflow-x-auto max-h-[500px]">
-              <table class="w-full text-left text-xs font-mono">
-                <thead id="db-browser-thead" class="text-slate-500 border-b border-slate-200 bg-slate-50/80 sticky top-0 z-10"></thead>
-                <tbody id="db-browser-tbody" class="divide-y divide-slate-100 text-slate-800"></tbody>
-              </table>
-            </div>
-
-            <!-- Pagination Bar -->
-            <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
-              <div id="db-browser-page-info">Page 1</div>
+          <!-- Table Selector & Live Subtitle Line -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div class="flex items-center space-x-2">
-                <button id="db-browser-prev-btn" onclick="paginateTableBrowser(-1)" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded disabled:opacity-50">Previous</button>
-                <button id="db-browser-next-btn" onclick="paginateTableBrowser(1)" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded disabled:opacity-50">Next</button>
+                <label class="text-xs font-bold text-slate-700">Choose Table:</label>
+                <select id="db-browser-table-select" onchange="onTableBrowserSelect(this.value)" class="px-3 py-1.5 text-xs font-bold border border-slate-300 rounded-lg bg-slate-50 text-slate-900 focus:outline-none focus:border-emerald-500">
+                  <option value="batches">batches</option>
+                  <option value="batch_lineage">batch_lineage</option>
+                  <option value="batch_plot_sources">batch_plot_sources</option>
+                  <option value="plots">plots</option>
+                  <option value="plot_polygon_points">plot_polygon_points</option>
+                  <option value="plot_production_records">plot_production_records</option>
+                  <option value="risk_assessments">risk_assessments</option>
+                  <option value="mitigation_actions">mitigation_actions</option>
+                  <option value="due_diligence_statements">due_diligence_statements</option>
+                  <option value="dds_batches">dds_batches</option>
+                  <option value="organizations">organizations</option>
+                  <option value="users">users</option>
+                  <option value="countries">countries</option>
+                  <option value="commodities">commodities</option>
+                  <option value="transactions">transactions</option>
+                  <option value="shipments">shipments</option>
+                  <option value="legality_documents">legality_documents</option>
+                  <option value="audit_log">audit_log</option>
+                </select>
+              </div>
+
+              <!-- Search inside table -->
+              <div class="flex items-center space-x-2 w-full sm:w-auto">
+                <input type="text" id="db-browser-search" onkeydown="if(event.key==='Enter') executeTableBrowserSearch()" placeholder="Search this table..." class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg w-full sm:w-56 focus:outline-none">
+                <button onclick="executeTableBrowserSearch()" class="px-3 py-1.5 text-xs font-semibold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Search</button>
               </div>
             </div>
-          </div>
-        </div>
 
-        <!-- ==============================================================
-             8. TAB: DATABASE ARCHITECTURE - SQL CONSOLE
-             ============================================================== -->
-        <div id="tab-db-sql-console" class="tab-pane hidden space-y-6">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h2 class="text-lg font-bold text-slate-900">Interactive SQL Query Console</h2>
-              <p class="text-xs text-slate-500">Execute read-only SELECT queries, inspect EXPLAIN QUERY PLAN, and test pre-built viva queries.</p>
-            </div>
-            <div class="flex items-center space-x-3">
-              <select id="sample-queries-select" onchange="loadSampleQueryIntoConsole(this.value)" class="px-3 py-1.5 text-xs font-medium border border-slate-300 rounded-lg bg-slate-50 focus:outline-none focus:border-emerald-500 max-w-xs">
-                <option value="">-- Load Pre-built Viva Query --</option>
-              </select>
+            <!-- "What is this table for?" Dynamic Subtitle Line -->
+            <div class="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded-lg text-xs text-forest-900 flex items-center space-x-2">
+              <i data-lucide="help-circle" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+              <span><strong>What is this table for?</strong> <span id="table-purpose-explanation">This table stores each lot of product (like 8,000 kg of cocoa) and its safety status.</span></span>
             </div>
           </div>
 
-          <!-- Query Editor Card -->
+          <!-- Table Container -->
           <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Raw SQL Editor (SQLite 3.x)</span>
-              <div class="flex items-center space-x-2">
-                <button onclick="clearSQLConsole()" class="px-3 py-1 text-xs text-slate-600 hover:text-slate-900">Clear</button>
-                <button onclick="runConsoleQuery()" class="px-4 py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow flex items-center">
-                  <i data-lucide="play" class="w-3.5 h-3.5 mr-1.5"></i> Run SQL Query
-                </button>
-              </div>
+            <div class="flex items-center justify-between text-xs text-slate-500">
+              <span id="db-browser-rowcount-label">- total rows</span>
+              <span id="db-browser-latency-label">- ms</span>
             </div>
-
-            <textarea id="sql-console-editor" rows="6" class="w-full font-mono text-xs bg-slate-900 text-emerald-300 p-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 leading-relaxed" placeholder="SELECT * FROM batches LIMIT 10;"></textarea>
-
-            <div id="sql-console-error" class="hidden p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-mono"></div>
-          </div>
-
-          <!-- Query Results Card -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div class="flex items-center space-x-4">
-                <button onclick="switchConsoleResultTab('results')" id="console-tab-btn-results" class="text-xs font-bold text-emerald-600 border-b-2 border-emerald-600 pb-1">Query Results</button>
-                <button onclick="switchConsoleResultTab('explain')" id="console-tab-btn-explain" class="text-xs font-medium text-slate-500 hover:text-slate-800 pb-1">EXPLAIN QUERY PLAN</button>
-              </div>
-              <div class="text-xs text-slate-500 font-mono" id="sql-console-stats">- rows &bull; - ms</div>
-            </div>
-
-            <div id="console-results-pane" class="overflow-x-auto max-h-96">
-              <table class="w-full text-left text-xs font-mono">
-                <thead id="sql-results-thead" class="text-slate-500 border-b border-slate-200 bg-slate-50 sticky top-0"></thead>
-                <tbody id="sql-results-tbody" class="divide-y divide-slate-100 text-slate-800">
-                  <tr><td class="py-8 text-center text-slate-400 font-sans">Run a query to view tabular results.</td></tr>
-                </tbody>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead id="db-browser-thead" class="text-slate-500 border-b border-slate-200 bg-slate-50/70"></thead>
+                <tbody id="db-browser-tbody" class="divide-y divide-slate-100 text-slate-700"></tbody>
               </table>
             </div>
 
-            <div id="console-explain-pane" class="hidden font-mono text-xs text-slate-700 space-y-2">
-              <div id="console-explain-content" class="p-4 bg-slate-50 rounded-lg border border-slate-200"></div>
+            <!-- Pagination -->
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+              <span id="db-browser-page-info">Page 1</span>
+              <div class="space-x-1">
+                <button onclick="paginateTableBrowser(-1)" class="px-2.5 py-1 border border-slate-300 rounded hover:bg-slate-50">&larr; Previous</button>
+                <button onclick="paginateTableBrowser(1)" class="px-2.5 py-1 border border-slate-300 rounded hover:bg-slate-50">Next &rarr;</button>
+              </div>
             </div>
           </div>
+
         </div>
 
         <!-- ==============================================================
-             9. TAB: DATABASE ARCHITECTURE - TRIGGERS & VIEWS
+             SEE THE DATABASE: 3. ASK THE DATABASE (SQL)
              ============================================================== -->
-        <div id="tab-db-triggers-views" class="tab-pane hidden space-y-6">
-          <div>
-            <h2 class="text-lg font-bold text-slate-900">Database Objects: Triggers, Views &amp; Indexes</h2>
-            <p class="text-xs text-slate-500">Declarative business rules, security integrity constraints, and query acceleration.</p>
-          </div>
-
-          <!-- Triggers Section -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-4">
-            <div class="flex items-center space-x-2">
-              <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i>
-              <h3 class="font-bold text-sm text-slate-900">Active Database Triggers</h3>
+        <div id="tab-db-sql-console" class="tab-pane hidden space-y-5">
+          
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">Ask the Database (SQL): run queries in plain English</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> Click any of the 10 plain-English questions below to run real SQL against the database, or write your own custom SELECT query.
+                </div>
+              </div>
             </div>
-            <div id="triggers-list-container" class="space-y-4"></div>
-          </div>
-
-          <!-- Views Section -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-4">
-            <div class="flex items-center space-x-2">
-              <i data-lucide="eye" class="w-4 h-4 text-blue-500"></i>
-              <h3 class="font-bold text-sm text-slate-900">SQL Views</h3>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> SQLite 3NF Database Engine</span>
+              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              </button>
             </div>
-            <div id="views-list-container" class="space-y-4"></div>
           </div>
 
-          <!-- Indexes Section -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-4">
-            <div class="flex items-center space-x-2">
-              <i data-lucide="gauge" class="w-4 h-4 text-emerald-500"></i>
-              <h3 class="font-bold text-sm text-slate-900">Performance Indexes</h3>
-            </div>
-            <div id="indexes-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
-          </div>
-        </div>
-
-        <!-- ==============================================================
-             10. TAB: DATABASE ARCHITECTURE - AUDIT LOG
-             ============================================================== -->
-        <div id="tab-db-audit-log" class="tab-pane hidden space-y-6">
-          <div class="flex items-center justify-between">
+          <!-- 10 READY-MADE PLAIN ENGLISH QUESTION BUTTONS -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
             <div>
-              <h2 class="text-lg font-bold text-slate-900">Immutable Trigger Audit Log Timeline</h2>
-              <p class="text-xs text-slate-500">Every INSERT, UPDATE, and DELETE is recorded automatically by SQLite triggers into <code class="font-mono bg-slate-100 px-1 py-0.5 rounded">audit_log</code>.</p>
+              <h3 class="font-bold text-sm text-slate-900">10 Ready-Made Questions (Click to Run)</h3>
+              <p class="text-xs text-slate-500">Pick any question to automatically load the SQL, run it, and see the explanation.</p>
             </div>
-            <button onclick="loadAuditLog()" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 flex items-center">
-              <i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1.5"></i> Refresh Audit Log
-            </button>
-          </div>
-
-          <div class="p-6 rounded-xl bg-white border border-slate-200 shadow-sm">
-            <div id="audit-timeline-container" class="space-y-6 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-200 pl-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2" id="plain-sql-buttons-container">
               <!-- Rendered via JS -->
             </div>
           </div>
+
+          <!-- SQL Editor & Run Box -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <i data-lucide="code" class="w-4 h-4 text-emerald-600"></i>
+                <h3 class="font-bold text-sm text-slate-900">SQL Code</h3>
+              </div>
+              <button onclick="runConsoleQuery()" class="px-4 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-sm transition-colors flex items-center">
+                <i data-lucide="play" class="w-3.5 h-3.5 mr-1.5 fill-current"></i> Run Query
+              </button>
+            </div>
+
+            <textarea id="sql-console-editor" rows="6" class="w-full font-mono text-xs p-3 bg-slate-900 text-emerald-300 rounded-lg border border-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+
+            <!-- Explanation of current query -->
+            <div id="current-query-explanation-box" class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700">
+              <strong>What this query does:</strong> <span id="current-query-explanation-text">Select a question above or click Run Query.</span>
+            </div>
+
+            <!-- Error Box -->
+            <div id="sql-console-error" class="hidden p-3 bg-rose-50 text-rose-800 border border-rose-200 rounded-lg text-xs font-mono"></div>
+
+            <!-- Results Table -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs text-slate-500">
+                <span class="font-bold text-slate-700">Query Results</span>
+                <span id="sql-console-stats">- rows &bull; - ms</span>
+              </div>
+              <div class="overflow-x-auto max-h-96 border border-slate-200 rounded-lg">
+                <table class="w-full text-left text-xs">
+                  <thead id="sql-results-thead" class="text-slate-500 border-b border-slate-200 bg-slate-50 sticky top-0"></thead>
+                  <tbody id="sql-results-tbody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- ==============================================================
-             11. TAB: DATABASE ARCHITECTURE - 3NF NORMALIZATION NOTES
+             SEE THE DATABASE: 4. AUTOMATIC RULES (Triggers & Views)
              ============================================================== -->
-        <div id="tab-db-normalization" class="tab-pane hidden space-y-6">
-          <div>
-            <h2 class="text-lg font-bold text-slate-900">3NF Normalization &amp; Relational Proofs</h2>
-            <p class="text-xs text-slate-500">Academic justification of schema design adhering to 1NF, 2NF, and 3NF.</p>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- 1NF Card -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-2">
-              <div class="flex items-center space-x-2">
-                <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs">1</span>
-                <h3 class="font-bold text-sm text-slate-900">First Normal Form (1NF)</h3>
+        <div id="tab-db-triggers-views" class="tab-pane hidden space-y-5">
+          
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">Automatic Rules: database triggers and views</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> Database rules run automatically on every insert, update, or delete. If anyone tries to approve illegal or deforested goods, the database stops them automatically.
+                </div>
               </div>
-              <p class="text-xs text-slate-600 leading-relaxed">
-                All attribute domains are atomic. Polygon coordinates are NOT stored as delimited comma strings; instead, they are normalized into child table <code class="font-mono bg-slate-100 px-1 py-0.5 rounded">plot_polygon_points</code> with sequential vertex coordinates. Every table features an explicit Primary Key.
-              </p>
             </div>
-
-            <!-- 2NF Card -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-2">
-              <div class="flex items-center space-x-2">
-                <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs">2</span>
-                <h3 class="font-bold text-sm text-slate-900">Second Normal Form (2NF)</h3>
-              </div>
-              <p class="text-xs text-slate-600 leading-relaxed">
-                Every non-prime attribute is fully functionally dependent on the entire primary key. In composite junction tables like <code class="font-mono bg-slate-100 px-1 py-0.5 rounded">batch_plot_sources (batch_id, plot_id)</code>, the contribution quantity is fully dependent on both keys, eliminating partial dependencies.
-              </p>
-            </div>
-
-            <!-- 3NF Card -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-2">
-              <div class="flex items-center space-x-2">
-                <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs">3</span>
-                <h3 class="font-bold text-sm text-slate-900">Third Normal Form (3NF)</h3>
-              </div>
-              <p class="text-xs text-slate-600 leading-relaxed">
-                Zero transitive dependencies (X &rarr; Y &rarr; Z). Country risk levels, commodity descriptions, and operator addresses are partitioned into reference tables (<code class="font-mono bg-slate-100 px-1 py-0.5 rounded">countries</code>, <code class="font-mono bg-slate-100 px-1 py-0.5 rounded">commodities</code>, <code class="font-mono bg-slate-100 px-1 py-0.5 rounded">organizations</code>) rather than duplicated across batches or plots.
-              </p>
-            </div>
-
-            <!-- Integrity Constraints Card -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-2">
-              <div class="flex items-center space-x-2">
-                <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-800 font-bold flex items-center justify-center text-xs">FK</span>
-                <h3 class="font-bold text-sm text-slate-900">Referential &amp; Domain Integrity</h3>
-              </div>
-              <p class="text-xs text-slate-600 leading-relaxed">
-                Enforces <code class="font-mono bg-slate-100 px-1 py-0.5 rounded">PRAGMA foreign_keys = ON</code>, <code class="font-mono bg-slate-100 px-1 py-0.5 rounded">ON DELETE RESTRICT</code> on critical supply chain nodes, strict <code class="font-mono bg-slate-100 px-1 py-0.5 rounded">CHECK</code> constraints on coordinates, ISO codes, and dates.
-              </p>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> SQLite Triggers, Views &amp; Indexes</span>
+              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              </button>
             </div>
           </div>
+
+          <!-- Automatic Rules Cards with "Try it" Live Demo Buttons -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="triggers-cards-container">
+            
+            <!-- Rule 1: Block Approving Deforested Batches -->
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-100 text-rose-800">BEFORE UPDATE Trigger</span>
+                  <span class="text-[11px] text-slate-400 font-mono">trg_validate_batch_compliance_promotion</span>
+                </div>
+                <h3 class="font-bold text-sm text-slate-900">Rule 1: Block Approving Deforested Batches</h3>
+                <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                  If anyone tries to set a batch to &ldquo;Compliant&rdquo;, this trigger checks all origin farm plots. If any plot had deforestation after 31 Dec 2020, the database aborts the update immediately.
+                </p>
+              </div>
+              <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-[11px] text-slate-500 font-mono">Target: batches</span>
+                <button onclick="tryTriggerDemo('deforestation')" class="px-3 py-1.5 text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg transition-colors flex items-center">
+                  <i data-lucide="play" class="w-3 h-3 mr-1 fill-current"></i> Try It: See DB Block Illegal Approval
+                </button>
+              </div>
+            </div>
+
+            <!-- Rule 2: Block Approving Batches with Missing Legal Papers -->
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 text-amber-800">BEFORE UPDATE Trigger</span>
+                  <span class="text-[11px] text-slate-400 font-mono">trg_validate_batch_compliance_promotion</span>
+                </div>
+                <h3 class="font-bold text-sm text-slate-900">Rule 2: Block Batches Missing Verified Legal Papers</h3>
+                <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                  Checks that every origin plot has a verified land title and environmental permit. If papers are unverified (like the Pelalawan plot), the database refuses to approve the batch.
+                </p>
+              </div>
+              <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-[11px] text-slate-500 font-mono">Target: batches</span>
+                <button onclick="tryTriggerDemo('unverified_docs')" class="px-3 py-1.5 text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg transition-colors flex items-center">
+                  <i data-lucide="play" class="w-3 h-3 mr-1 fill-current"></i> Try It: See DB Require Verified Papers
+                </button>
+              </div>
+            </div>
+
+            <!-- Rule 3: Enforce Polygons on Plots > 4 Hectares -->
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-100 text-blue-800">BEFORE INSERT Trigger</span>
+                  <span class="text-[11px] text-slate-400 font-mono">trg_validate_plot_polygon_req_insert</span>
+                </div>
+                <h3 class="font-bold text-sm text-slate-900">Rule 3: Enforce Polygons on Plots &gt; 4 Hectares</h3>
+                <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                  Under Article 9 of EUDR, any farm plot over 4.0 hectares must be saved with a polygon boundary (multiple GPS vertices), not a single point.
+                </p>
+              </div>
+              <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-[11px] text-slate-500 font-mono">Target: plots</span>
+                <button onclick="tryTriggerDemo('polygon_req')" class="px-3 py-1.5 text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 rounded-lg transition-colors flex items-center">
+                  <i data-lucide="play" class="w-3 h-3 mr-1 fill-current"></i> Try It: See DB Require Polygon
+                </button>
+              </div>
+            </div>
+
+            <!-- Rule 4: Prevent Blending Blocked Goods -->
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-100 text-rose-800">BEFORE INSERT Trigger</span>
+                  <span class="text-[11px] text-slate-400 font-mono">trg_prevent_mixed_non_compliant_parent</span>
+                </div>
+                <h3 class="font-bold text-sm text-slate-900">Rule 4: Prevent Blending Blocked Goods</h3>
+                <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                  Companies are not allowed to mix illegal batches into clean product to hide them. This trigger blocks adding any Non-Compliant parent batch into a processing recipe.
+                </p>
+              </div>
+              <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-[11px] text-slate-500 font-mono">Target: batch_lineage</span>
+                <button onclick="tryTriggerDemo('blending')" class="px-3 py-1.5 text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg transition-colors flex items-center">
+                  <i data-lucide="play" class="w-3 h-3 mr-1 fill-current"></i> Try It: See DB Stop Mixed Blending
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Views and Indexes Section -->
+          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
+            <h3 class="font-bold text-sm text-slate-900">Pre-computed Database Views (Fast Analytics)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="views-list-container">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==============================================================
+             SEE THE DATABASE: 5. CHANGE HISTORY (Audit Log)
+             ============================================================== -->
+        <div id="tab-db-audit-log" class="tab-pane hidden space-y-5">
+          
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">Change History: timeline of database changes</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> A permanent record of every addition, update, or deletion saved by automatic triggers. Shows who made the change and what values were updated.
+                </div>
+              </div>
+            </div>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database table used: audit_log</span>
+              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              </button>
+            </div>
+          </div>
+
+          <!-- Timeline Filter -->
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center space-x-2">
+              <label class="text-xs font-bold text-slate-700">Filter by Table:</label>
+              <select id="audit-table-filter" onchange="loadAuditLogData(this.value)" class="px-3 py-1.5 text-xs font-semibold border border-slate-300 rounded-lg bg-white text-slate-800">
+                <option value="">All Tables</option>
+                <option value="batches">batches</option>
+                <option value="plots">plots</option>
+                <option value="due_diligence_statements">due_diligence_statements</option>
+              </select>
+            </div>
+            <button onclick="loadAuditLogData()" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg flex items-center">
+              <i data-lucide="refresh-cw" class="w-3 h-3 mr-1"></i> Refresh History
+            </button>
+          </div>
+
+          <!-- Timeline of Sentences & Old -> New Diff View -->
+          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-4">
+            <div id="audit-timeline-container" class="space-y-3">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==============================================================
+             SEE THE DATABASE: 6. WHY OUR DESIGN IS GOOD (3NF)
+             ============================================================== -->
+        <div id="tab-db-normalization" class="tab-pane hidden space-y-5">
+          
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">Why Our Design Is Good: 3rd Normal Form (3NF)</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> Why we separate data into 18 tables instead of one big spreadsheet. It eliminates duplicate errors and keeps our data clean.
+                </div>
+              </div>
+            </div>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Relational Architecture: 3rd Normal Form (3NF)</span>
+              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              </button>
+            </div>
+          </div>
+
+          <!-- BEFORE & AFTER EXAMPLE -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Bad Example -->
+            <div class="p-5 rounded-xl bg-rose-50/70 border border-rose-200 space-y-2">
+              <div class="flex items-center space-x-2 text-rose-800 font-bold text-xs uppercase">
+                <i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i>
+                <span>Before: One Big Spreadsheet (Bad Design)</span>
+              </div>
+              <p class="text-xs text-rose-900 leading-relaxed">
+                If the company name, farmer address, and country were repeated in every batch row, someone updating the address in one row would leave the other rows outdated. That creates <strong>Update Anomalies</strong> and corrupts legal records.
+              </p>
+            </div>
+
+            <!-- Good Example -->
+            <div class="p-5 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-2">
+              <div class="flex items-center space-x-2 text-emerald-800 font-bold text-xs uppercase">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+                <span>After: 3rd Normal Form (Our Design)</span>
+              </div>
+              <p class="text-xs text-emerald-900 leading-relaxed">
+                Each company is saved exactly once in the <code>organizations</code> table. Batches simply reference the company ID. If an address changes, updating one single row updates it everywhere automatically with zero duplicates.
+              </p>
+            </div>
+          </div>
+
+          <!-- ONE CARD PER TABLE: WHY IT IS SEPARATE -->
+          <div class="space-y-3">
+            <h3 class="font-bold text-sm text-slate-900">Why each table is separate:</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              
+              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono text-xs font-bold text-emerald-700">organizations</span>
+                  <span class="text-[10px] text-slate-400">Master Data</span>
+                </div>
+                <div class="font-bold text-xs text-slate-900">Why it is separate:</div>
+                <p class="text-xs text-slate-600">Companies have tax numbers (EORI) and addresses. Storing them separately means farmer details are never duplicated across hundreds of harvest batches.</p>
+              </div>
+
+              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono text-xs font-bold text-emerald-700">plots</span>
+                  <span class="text-[10px] text-slate-400">Land Parcels</span>
+                </div>
+                <div class="font-bold text-xs text-slate-900">Why it is separate:</div>
+                <p class="text-xs text-slate-600">A piece of land exists permanently regardless of what crops grow each year. Storing plots separately ensures GPS coordinates never get accidentally modified.</p>
+              </div>
+
+              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono text-xs font-bold text-emerald-700">plot_polygon_points</span>
+                  <span class="text-[10px] text-slate-400">Geospatial</span>
+                </div>
+                <div class="font-bold text-xs text-slate-900">Why it is separate:</div>
+                <p class="text-xs text-slate-600">A boundary polygon has 3 to 100+ GPS vertices (1:N relationship). Storing vertices in a child table satisfies 1NF by eliminating repeating groups.</p>
+              </div>
+
+              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono text-xs font-bold text-emerald-700">batches</span>
+                  <span class="text-[10px] text-slate-400">Supply Lots</span>
+                </div>
+                <div class="font-bold text-xs text-slate-900">Why it is separate:</div>
+                <p class="text-xs text-slate-600">Each batch has its own weight, harvest date, and safety status. It links to products and companies without repeating their descriptions.</p>
+              </div>
+
+              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono text-xs font-bold text-emerald-700">batch_lineage</span>
+                  <span class="text-[10px] text-slate-400">Traceability</span>
+                </div>
+                <div class="font-bold text-xs text-slate-900">Why it is separate:</div>
+                <p class="text-xs text-slate-600">Batches can be blended or split (M:N relationship). A dedicated junction table enables recursive SQL queries to trace back 10 steps to the farm.</p>
+              </div>
+
+              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono text-xs font-bold text-emerald-700">due_diligence_statements</span>
+                  <span class="text-[10px] text-slate-400">EU Clearance</span>
+                </div>
+                <div class="font-bold text-xs text-slate-900">Why it is separate:</div>
+                <p class="text-xs text-slate-600">One official EU report can contain 10 batches. Separating reports prevents repeating customs reference numbers on every batch row.</p>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==============================================================
+             HELP: WORD MEANINGS (Glossary)
+             ============================================================== -->
+        <div id="tab-word-meanings" class="tab-pane hidden space-y-5">
+          
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">Word Meanings: EUDR glossary in simple words</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> A plain English guide to all laws, technical terms, and acronyms used in this system.
+                </div>
+              </div>
+            </div>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="book" class="w-3 h-3 mr-1 text-emerald-600"></i> Plain English Terminology Dictionary</span>
+              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              </button>
+            </div>
+          </div>
+
+          <!-- Glossary Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+              <div class="text-xs font-bold text-emerald-700 uppercase">EUDR</div>
+              <h3 class="font-bold text-sm text-slate-900">European Union Deforestation Regulation</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">The European law (Reg. 2023/1115) that forbids selling goods produced on land cleared after 31 Dec 2020.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+              <div class="text-xs font-bold text-emerald-700 uppercase">Commodity</div>
+              <h3 class="font-bold text-sm text-slate-900">Regulated Product</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">The 7 products covered by law: cocoa, coffee, oil palm, rubber, soya, cattle, and wood.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+              <div class="text-xs font-bold text-emerald-700 uppercase">Plot</div>
+              <h3 class="font-bold text-sm text-slate-900">Farmland Parcel</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">A specific piece of land with recorded GPS coordinates where crops are grown.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+              <div class="text-xs font-bold text-emerald-700 uppercase">Polygon</div>
+              <h3 class="font-bold text-sm text-slate-900">Land Boundary</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">A series of GPS points connected like a fence. Required for all plots larger than 4 hectares.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+              <div class="text-xs font-bold text-emerald-700 uppercase">Batch</div>
+              <h3 class="font-bold text-sm text-slate-900">One Lot of Product</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">A specific quantity of product harvested, processed, or shipped together (e.g. 8,000 kg of cocoa).</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+              <div class="text-xs font-bold text-emerald-700 uppercase">Traceability</div>
+              <h3 class="font-bold text-sm text-slate-900">Farm-to-Fork Journey</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">The ability to follow a product step-by-step from the store shelf back to the exact farm plot.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+              <div class="text-xs font-bold text-emerald-700 uppercase">Risk Assessment</div>
+              <h3 class="font-bold text-sm text-slate-900">Safety Check</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Evaluating country risk, satellite images, and legal papers to make sure goods are clean.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+              <div class="text-xs font-bold text-emerald-700 uppercase">Mitigation</div>
+              <h3 class="font-bold text-sm text-slate-900">Corrective Action</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">Extra steps taken if risk is found, like doing a satellite check or requesting official tax papers.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+              <div class="text-xs font-bold text-emerald-700 uppercase">DDS / EU Report</div>
+              <h3 class="font-bold text-sm text-slate-900">Due Diligence Statement</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">The official compliance statement submitted to the EU customs portal before selling products in the EU.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+              <div class="text-xs font-bold text-emerald-700 uppercase">EORI</div>
+              <h3 class="font-bold text-sm text-slate-900">EU Tax / Customs Number</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">A unique European registration number used by customs to identify trading companies.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+              <div class="text-xs font-bold text-emerald-700 uppercase">Operator</div>
+              <h3 class="font-bold text-sm text-slate-900">EU Importer</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">The company that brings the goods into the EU market and carries legal responsibility.</p>
+            </div>
+
+            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
+              <div class="text-xs font-bold text-emerald-700 uppercase">Cut-Off Date</div>
+              <h3 class="font-bold text-sm text-slate-900">31 December 2020</h3>
+              <p class="text-xs text-slate-600 leading-relaxed">The legal cut-off line. Land cleared of forest after this date is illegal to import from.</p>
+            </div>
+
+          </div>
+
         </div>
 
       </main>
@@ -1012,24 +1518,67 @@
   </div>
 
   <!-- ====================================================================
+       INTERACTIVE 7-STEP DEMO TOUR MODAL & OVERLAY
+       ==================================================================== -->
+  <div id="tour-overlay">
+    <div class="tour-card" id="tour-card-body">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <span class="text-xs font-bold uppercase tracking-wider text-emerald-600" id="tour-step-counter">Step 1 of 7</span>
+        <button onclick="closeDemoTour()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="py-4 space-y-2">
+        <h3 class="font-extrabold text-base text-slate-900" id="tour-title">This is the story: from farm to EU.</h3>
+        <p class="text-xs text-slate-600 leading-relaxed" id="tour-explanation">
+          EU law says products like cocoa and coffee must not come from deforested land. TraceChain tracks every batch back to the exact farm.
+        </p>
+      </div>
+      <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+        <button onclick="prevTourStep()" id="tour-prev-btn" class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Previous</button>
+        <button onclick="nextTourStep()" id="tour-next-btn" class="px-4 py-1.5 text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-900 rounded-lg shadow-sm">Next Step &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       "EXPLAIN THIS TABLE" MODAL (FOR TABLE DIAGRAM)
+       ==================================================================== -->
+  <div id="modal-explain-table" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden p-5 space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="table" class="w-4 h-4 text-emerald-600"></i>
+          <h3 class="font-bold text-sm text-slate-900" id="explain-table-name">Table Explanation</h3>
+        </div>
+        <button onclick="closeModal('modal-explain-table')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <p class="text-xs text-slate-700 leading-relaxed" id="explain-table-text"></p>
+      <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
+        <span class="text-[10px] font-bold uppercase text-slate-400 block">Example Record</span>
+        <pre class="font-mono text-[11px] text-slate-800 overflow-x-auto whitespace-pre-wrap" id="explain-table-sample"></pre>
+      </div>
+      <div class="text-right pt-1">
+        <button onclick="closeModal('modal-explain-table')" class="px-4 py-1.5 text-xs font-bold bg-forest-900 text-white rounded-lg">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
        SLIDE-OVER "UNDER THE HOOD (SQL)" ACTIVITY DRAWER
        ==================================================================== -->
   <div id="under-the-hood-drawer" class="fixed inset-y-0 right-0 w-96 bg-slate-900 text-slate-200 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col border-l border-slate-800">
-    <div class="h-16 px-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+    <div class="h-14 px-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
       <div class="flex items-center space-x-2">
         <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i>
-        <h3 class="font-bold text-sm text-white">Under the Hood: SQL Telemetry</h3>
+        <h3 class="font-bold text-sm text-white">Database Action Log</h3>
       </div>
-      <button onclick="toggleUnderTheHood()" class="text-slate-400 hover:text-white">
+      <button onclick="toggleUnderTheHood()" class="text-slate-400 hover:text-white p-1">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
     </div>
-
     <div class="p-3 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400">
-      <span>Real-time server queries</span>
+      <span>Executed queries with runtime</span>
       <button onclick="clearTelemetryLog()" class="text-[11px] text-slate-400 hover:text-slate-200">Clear</button>
     </div>
-
     <div id="telemetry-log-container" class="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-[11px]">
       <div class="text-center py-12 text-slate-500 font-sans text-xs">
         <p>No queries executed yet in this session.</p>
@@ -1044,75 +1593,94 @@
     <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
       <div class="p-3 border-b border-slate-100 flex items-center">
         <i data-lucide="search" class="w-4 h-4 text-slate-400 mr-2"></i>
-        <input type="text" id="palette-search-input" oninput="runPaletteSearch(this.value)" placeholder="Search batches, plots, organizations, or jump to tab..." class="w-full text-xs text-slate-800 focus:outline-none">
+        <input type="text" id="palette-search-input" oninput="runPaletteSearch(this.value)" placeholder="Search batches, plots, companies, or jump to tab..." class="w-full text-xs text-slate-800 focus:outline-none">
         <kbd onclick="closeCommandPalette()" class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded cursor-pointer">ESC</kbd>
       </div>
-      <div id="palette-results-list" class="max-h-72 overflow-y-auto p-2 text-xs space-y-1">
-        <!-- Search results -->
-      </div>
+      <div id="palette-results-list" class="max-h-72 overflow-y-auto p-2 text-xs space-y-1"></div>
     </div>
   </div>
 
   <!-- ====================================================================
-       MODALS: ADD PLOT, CREATE BATCH, RISK ASSESSMENT, GENERATE DDS
+       MODALS: ADD PLOT (3-STEP), CREATE BATCH, RUN SAFETY CHECK, GENERATE DDS, ADD MASTER
        ==================================================================== -->
-  <!-- Modal 1: Add Plot -->
+  <!-- Modal 1: Add Plot (3 Simple Steps) -->
   <div id="modal-add-plot" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
       <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-sm text-slate-900">Register Production Plot</h3>
+        <div>
+          <h3 class="font-bold text-sm text-slate-900">Add Farm Plot (3 Simple Steps)</h3>
+          <p class="text-xs text-slate-500">Register new farmland with GPS coordinates</p>
+        </div>
         <button onclick="closeModal('modal-add-plot')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
       <form id="form-add-plot" onsubmit="submitAddPlot(event)" class="p-5 space-y-4 text-xs">
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Region / Parcel Name *</label>
-          <input type="text" name="region_name" required placeholder="e.g. Ashanti Bekwai Sector 5" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+        
+        <!-- Step 1: Where? -->
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+          <span class="font-bold text-emerald-800 text-xs block">Step 1: Where is the farm?</span>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-0.5">Plot Name *</label>
+            <input type="text" name="region_name" required placeholder="e.g. Ashanti Bekwai Sector 5" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-0.5">Country *</label>
+              <select name="country_id" id="plot-form-country-select" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-0.5">Owner Company / Farmer *</label>
+              <select name="owner_org_id" id="plot-form-owner-select" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></select>
+            </div>
+          </div>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Owner Organization *</label>
-            <select name="owner_org_id" id="plot-form-owner-select" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></select>
+
+        <!-- Step 2: What is grown? -->
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+          <span class="font-bold text-emerald-800 text-xs block">Step 2: What is grown?</span>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-0.5">Crop *</label>
+              <select name="commodity_id" id="plot-form-commodity-select" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-0.5">Size (Hectares) *</label>
+              <input type="number" step="0.01" name="area_hectares" id="plot-form-area" oninput="autoCheckGeoType(this.value)" required placeholder="3.5" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+            </div>
           </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Country *</label>
-            <select name="country_id" id="plot-form-country-select" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></select>
+          <!-- Live rule message -->
+          <div id="plot-form-geo-msg" class="text-[11px] font-semibold text-slate-600 p-2 bg-white rounded border border-slate-200">
+            This plot is under 4 hectares, so one GPS point is enough.
           </div>
-        </div>
-        <div class="grid grid-cols-3 gap-3">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Commodity *</label>
-            <select name="commodity_id" id="plot-form-commodity-select" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Area (Hectares) *</label>
-            <input type="number" step="0.01" name="area_hectares" id="plot-form-area" oninput="autoCheckGeoType(this.value)" required placeholder="3.5" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Geo Type *</label>
-            <select name="geo_type" id="plot-form-geo-type" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
-              <option value="POINT">POINT (&le; 4 ha)</option>
-              <option value="POLYGON">POLYGON (&gt; 4 ha)</option>
+          <div class="hidden">
+            <select name="geo_type" id="plot-form-geo-type">
+              <option value="POINT">POINT</option>
+              <option value="POLYGON">POLYGON</option>
             </select>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Latitude (6 decimals) *</label>
-            <input type="number" step="0.000001" name="latitude" required placeholder="6.223401" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+
+        <!-- Step 3: Proof (Coordinates & Forest Status) -->
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+          <span class="font-bold text-emerald-800 text-xs block">Step 3: Exact GPS Location</span>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-0.5">Latitude (6 decimals) *</label>
+              <input type="number" step="0.000001" name="latitude" required placeholder="6.223401" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-0.5">Longitude (6 decimals) *</label>
+              <input type="number" step="0.000001" name="longitude" required placeholder="-1.892345" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+            </div>
           </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Longitude (6 decimals) *</label>
-            <input type="number" step="0.000001" name="longitude" required placeholder="-1.892345" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+          <div id="plot-polygon-input-group" class="hidden">
+            <label class="block font-semibold text-slate-700 mb-0.5">Polygon Points (at least 3 GPS points)</label>
+            <textarea name="polygon_coords_raw" rows="2" placeholder="[[6.310567, -2.145890], [6.314200, -2.141200], [6.308900, -2.138400], [6.310567, -2.145890]]" class="w-full font-mono text-[11px] px-2 py-1 border border-slate-300 rounded"></textarea>
           </div>
         </div>
-        <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
-          <label class="block font-semibold text-slate-700 mb-1">Polygon Vertices (if POLYGON selected)</label>
-          <textarea name="polygon_coords_raw" rows="2" placeholder="[[6.310567, -2.145890], [6.314200, -2.141200], [6.308900, -2.138400], [6.310567, -2.145890]]" class="w-full font-mono text-[11px] px-2 py-1 border border-slate-300 rounded"></textarea>
-          <span class="text-[10px] text-slate-500">Plots &gt; 4.0 ha must include polygon coordinates.</span>
-        </div>
+
         <div class="flex items-center justify-end space-x-2 pt-2">
           <button type="button" onclick="closeModal('modal-add-plot')" class="px-3 py-1.5 text-slate-600">Cancel</button>
-          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Save Plot to DB</button>
+          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Save Plot to Database</button>
         </div>
       </form>
     </div>
@@ -1122,27 +1690,27 @@
   <div id="modal-create-batch" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
       <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-sm text-slate-900">Create Supply Chain Batch</h3>
+        <h3 class="font-bold text-sm text-slate-900">Create Product Batch</h3>
         <button onclick="closeModal('modal-create-batch')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
       <form id="form-create-batch" onsubmit="submitCreateBatch(event)" class="p-5 space-y-4 text-xs">
         <div>
           <label class="block font-semibold text-slate-700 mb-1">Batch Code (e.g. GH-COC-RAW-2026-99)</label>
-          <input type="text" name="batch_code" placeholder="Auto-generated if left blank" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg uppercase">
+          <input type="text" name="batch_code" placeholder="Leave blank to auto-generate code" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg uppercase">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Commodity *</label>
+            <label class="block font-semibold text-slate-700 mb-1">Product *</label>
             <select name="commodity_id" id="batch-form-commodity-select" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></select>
           </div>
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Quantity (kg) *</label>
+            <label class="block font-semibold text-slate-700 mb-1">Weight in kg *</label>
             <input type="number" step="0.01" name="quantity_kg" required placeholder="5000" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Created By Organization *</label>
+            <label class="block font-semibold text-slate-700 mb-1">Company *</label>
             <select name="created_by_org_id" id="batch-form-org-select" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></select>
           </div>
           <div>
@@ -1155,72 +1723,70 @@
           </div>
         </div>
 
-        <!-- Raw Plot Sources Selector -->
         <div id="batch-source-plots-group" class="p-3 bg-slate-50 rounded-lg border border-slate-200">
-          <label class="block font-semibold text-slate-700 mb-1">Link Origin Farm Plots (M:N)</label>
+          <label class="block font-semibold text-slate-700 mb-1">Source Farm Plots</label>
           <select id="batch-source-plots-select" multiple class="w-full h-24 text-[11px] p-1 border border-slate-300 rounded"></select>
-          <span class="text-[10px] text-slate-500">Hold Ctrl to select multiple origin farm plots.</span>
+          <span class="text-[10px] text-slate-500">Hold Ctrl to select multiple origin plots.</span>
         </div>
 
-        <!-- Parent Batches Lineage Selector -->
         <div id="batch-parent-lineage-group" class="hidden p-3 bg-slate-50 rounded-lg border border-slate-200">
-          <label class="block font-semibold text-slate-700 mb-1">Link Parent Batches (Processing Chain)</label>
+          <label class="block font-semibold text-slate-700 mb-1">Link Parent Batches</label>
           <select id="batch-parent-lineage-select" multiple class="w-full h-24 text-[11px] p-1 border border-slate-300 rounded"></select>
-          <span class="text-[10px] text-slate-500">Hold Ctrl to select parent batches to blend.</span>
+          <span class="text-[10px] text-slate-500">Hold Ctrl to select parent batches.</span>
         </div>
 
         <div class="flex items-center justify-end space-x-2 pt-2">
           <button type="button" onclick="closeModal('modal-create-batch')" class="px-3 py-1.5 text-slate-600">Cancel</button>
-          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Create Batch</button>
+          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Save Batch</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal 3: Run Risk Assessment -->
+  <!-- Modal 3: Run Safety Check (Risk Assessment) -->
   <div id="modal-risk-assessment" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
       <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-sm text-slate-900">Run Due Diligence Risk Assessment</h3>
+        <h3 class="font-bold text-sm text-slate-900">Run Batch Safety Check</h3>
         <button onclick="closeModal('modal-risk-assessment')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
       <form id="form-risk-assessment" onsubmit="submitRiskAssessment(event)" class="p-5 space-y-4 text-xs">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Select Batch to Assess *</label>
+          <label class="block font-semibold text-slate-700 mb-1">Select Batch to Check *</label>
           <select name="batch_id" id="risk-form-batch-select" required class="w-full px-3 py-2 border border-slate-300 rounded-lg"></select>
         </div>
-        <div class="p-3 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200">
-          <div class="font-bold mb-1">Scoring Formula</div>
-          <p class="text-[11px] leading-relaxed">Risk = (Country &times; 0.25) + (Plot Deforestation &times; 0.30) + (Plot Tenure &times; 0.25) + (Supplier &times; 0.20)</p>
+        <div class="p-3 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200 text-xs">
+          <div class="font-bold mb-1">How the score works:</div>
+          <p class="leading-relaxed">Country risk (25%) + Farm forest status (30%) + Land legal papers (25%) + Supplier check (20%). Score under 20 is Safe; above 20 Needs Action.</p>
         </div>
         <div class="flex items-center justify-end space-x-2 pt-2">
           <button type="button" onclick="closeModal('modal-risk-assessment')" class="px-3 py-1.5 text-slate-600">Cancel</button>
-          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Calculate &amp; Save</button>
+          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Run Check &amp; Save</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal 4: Generate DDS -->
+  <!-- Modal 4: Generate EU Report (DDS) -->
   <div id="modal-generate-dds" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
       <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-sm text-slate-900">Generate Due Diligence Statement (DDS)</h3>
+        <h3 class="font-bold text-sm text-slate-900">Create EU Compliance Report</h3>
         <button onclick="closeModal('modal-generate-dds')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
       <form id="form-generate-dds" onsubmit="submitGenerateDDS(event)" class="p-5 space-y-4 text-xs">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">First Placing EU Operator *</label>
+          <label class="block font-semibold text-slate-700 mb-1">EU Importer (Placing Company) *</label>
           <select name="operator_org_id" id="dds-form-operator-select" required class="w-full px-3 py-2 border border-slate-300 rounded-lg"></select>
         </div>
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Select Compliant Batches for Statement *</label>
+          <label class="block font-semibold text-slate-700 mb-1">Select Approved Batches to Include *</label>
           <select name="batch_ids" id="dds-form-batches-select" multiple required class="w-full h-28 text-[11px] p-2 border border-slate-300 rounded"></select>
-          <span class="text-[10px] text-slate-500">Hold Ctrl to select multiple compliant batches.</span>
+          <span class="text-[10px] text-slate-500">Only batches that passed Safety Check are shown.</span>
         </div>
         <div class="flex items-center justify-end space-x-2 pt-2">
           <button type="button" onclick="closeModal('modal-generate-dds')" class="px-3 py-1.5 text-slate-600">Cancel</button>
-          <button type="submit" class="px-4 py-1.5 font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-500">Submit to EU Portal</button>
+          <button type="submit" class="px-4 py-1.5 font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-500">Submit EU Report</button>
         </div>
       </form>
     </div>
@@ -1230,14 +1796,14 @@
   <div id="modal-add-master-record" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
       <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-sm text-slate-900" id="modal-master-title">Add Record</h3>
+        <h3 class="font-bold text-sm text-slate-900" id="modal-master-title">Add Company</h3>
         <button onclick="closeModal('modal-add-master-record')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
       <form id="form-add-master-record" onsubmit="submitAddMasterRecord(event)" class="p-5 space-y-3 text-xs">
         <div id="master-dynamic-inputs" class="space-y-3"></div>
         <div class="flex items-center justify-end space-x-2 pt-2">
           <button type="button" onclick="closeModal('modal-add-master-record')" class="px-3 py-1.5 text-slate-600">Cancel</button>
-          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Save Record</button>
+          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Save</button>
         </div>
       </form>
     </div>
@@ -1250,38 +1816,35 @@
     <div class="border-4 border-forest-900 p-8 rounded-2xl">
       <div class="flex justify-between items-center pb-6 border-b-2 border-forest-900">
         <div>
-          <h1 class="text-2xl font-black text-forest-900">EUDR COMPLIANCE &amp; TRACEABILITY CERTIFICATE</h1>
+          <h1 class="text-2xl font-black text-forest-900">EUDR TRACEABILITY CERTIFICATE</h1>
           <p class="text-xs text-slate-600 mt-1">Pursuant to European Union Regulation (EU) 2023/1115 &amp; (EU) 2025/2650</p>
         </div>
         <div class="text-right font-mono text-xs">
           <div class="font-bold text-sm" id="cert-batch-code">NL-CHOC-2026-0044</div>
-          <div class="text-emerald-700 font-bold">STATUS: COMPLIANT</div>
+          <div class="text-emerald-700 font-bold">STATUS: APPROVED</div>
         </div>
       </div>
-
       <div class="grid grid-cols-2 gap-6 my-6 text-xs">
         <div>
           <div class="font-bold uppercase text-slate-500 mb-1">Product Details</div>
-          <div><strong>Commodity:</strong> <span id="cert-commodity">Chocolate Confectionery</span></div>
-          <div><strong>Quantity:</strong> <span id="cert-qty">15,000.00 kg</span></div>
+          <div><strong>Product:</strong> <span id="cert-commodity">Chocolate Confectionery</span></div>
+          <div><strong>Weight:</strong> <span id="cert-qty">15,000 kg</span></div>
           <div><strong>Origin:</strong> Ashanti Region, Ghana</div>
         </div>
         <div>
-          <div class="font-bold uppercase text-slate-500 mb-1">EU Due Diligence Statement</div>
-          <div><strong>DDS Reference:</strong> <span id="cert-dds-ref">26EUDDS88491A</span></div>
-          <div><strong>Placing Operator:</strong> Dutch Cocoa Trading BV (EORI: NL823940192B01)</div>
-          <div><strong>Cut-off Date:</strong> 31 Dec 2020 (Verified Intact)</div>
+          <div class="font-bold uppercase text-slate-500 mb-1">EU Report &amp; Company</div>
+          <div><strong>EU Report:</strong> <span id="cert-dds-ref">26EUDDS88491A</span></div>
+          <div><strong>EU Importer:</strong> Dutch Cocoa Trading BV (EORI: NL823940192B01)</div>
+          <div><strong>Cut-off Date:</strong> 31 Dec 2020 (Forest Intact)</div>
         </div>
       </div>
-
       <div class="border-t border-slate-200 pt-4">
-        <h3 class="text-xs font-bold uppercase text-slate-500 mb-2">Verified Geolocation Coordinates of Origin Plots</h3>
+        <h3 class="text-xs font-bold uppercase text-slate-500 mb-2">Verified Geolocation of Origin Farm Plots</h3>
         <div id="cert-plots-table" class="font-mono text-[11px] space-y-1"></div>
       </div>
-
       <div class="mt-8 pt-4 border-t border-slate-300 flex justify-between items-end text-[10px] text-slate-500">
-        <div>System-generated via SQLite 3NF Database &bull; EUDR TraceChain Architecture</div>
-        <div class="text-right">Digital Verification Hash: <span class="font-mono">SHA256-EUDR-88491-VERIFIED</span></div>
+        <div>Generated via SQLite 3NF Database &bull; EUDR TraceChain</div>
+        <div class="text-right">Digital Hash: <span class="font-mono">SHA256-EUDR-88491-VERIFIED</span></div>
       </div>
     </div>
   </div>

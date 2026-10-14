@@ -268,6 +268,18 @@ def api_plots():
             
         for p in plots:
             p['polygon_coords'] = poly_map.get(p['plot_id'], [])
+            if p.get('deforestation_free', 1) == 0:
+                p['calculated_status'] = 'Blocked'
+                p['status_reason'] = 'Deforested after 31 Dec 2020'
+            elif p.get('total_docs_count', 0) > 0 and p.get('verified_docs_count', 0) == 0:
+                p['calculated_status'] = 'Waiting'
+                p['status_reason'] = 'Legal documents not verified'
+            elif p.get('area_hectares', 0) > 4.0 and (p.get('geo_type') != 'POLYGON' or len(p.get('polygon_coords', [])) < 3):
+                p['calculated_status'] = 'Waiting'
+                p['status_reason'] = 'Requires polygon boundary'
+            else:
+                p['calculated_status'] = 'Approved'
+                p['status_reason'] = 'Verified compliant & legal'
             
         return jsonify({"plots": plots, "error": error})
 
@@ -420,6 +432,7 @@ def api_update_batch_status(batch_id):
 # API: LINEAGE TRACE ENGINE (FORWARD & BACKWARD RECURSIVE)
 # --------------------------------------------------------------------
 @app.route('/api/batches/trace/<batch_code>', methods=['GET'])
+@app.route('/api/batches/<batch_code>/trace', methods=['GET'])
 def api_trace_batch(batch_code):
     db = get_db()
     
@@ -562,11 +575,16 @@ def api_trace_batch(batch_code):
         WHERE t.batch_id IN ({placeholders})
     """, all_batch_ids)
 
+    direction = request.args.get('direction', 'backward')
+    chosen_lineage = ancestors if direction == 'backward' else descendants
     return jsonify({
         "target_batch": target_dict,
+        "root_batch": target_dict,
         "ancestors": ancestors,
         "descendants": descendants,
+        "lineage": chosen_lineage,
         "origin_plots": origin_plots,
+        "plots": origin_plots,
         "legality_documents": docs,
         "transactions": transactions
     })
@@ -575,6 +593,7 @@ def api_trace_batch(batch_code):
 # API: RISK ASSESSMENT & DUE DILIGENCE
 # --------------------------------------------------------------------
 @app.route('/api/risk-assessments', methods=['GET', 'POST'])
+@app.route('/api/risk/assessments', methods=['GET', 'POST'])
 def api_risk_assessments():
     if request.method == 'GET':
         assessments, _, error = execute_raw_sql("""
@@ -717,6 +736,30 @@ def api_dds():
             execute_raw_sql("INSERT INTO dds_batches (dds_id, batch_id) VALUES (?, ?)", (dds_id, bid), fetch_mode='none')
             
         return jsonify({"success": True, "dds_id": dds_id, "dds_reference": dds_reference, "message": f"DDS {dds_reference} registered successfully."})
+
+# --------------------------------------------------------------------
+# API: SIMPLE LOOKUP ENDPOINTS (used by JS dropdowns)
+# --------------------------------------------------------------------
+@app.route('/api/countries', methods=['GET'])
+def api_countries():
+    rows, _, error = execute_raw_sql("SELECT country_id, name, iso_code, risk_level FROM countries ORDER BY name")
+    if error:
+        return jsonify({"error": error}), 500
+    return jsonify({"countries": rows})
+
+@app.route('/api/commodities', methods=['GET'])
+def api_commodities():
+    rows, _, error = execute_raw_sql("SELECT commodity_id, name, cn_hs_code FROM commodities ORDER BY name")
+    if error:
+        return jsonify({"error": error}), 500
+    return jsonify({"commodities": rows})
+
+@app.route('/api/organizations', methods=['GET'])
+def api_organizations():
+    rows, _, error = execute_raw_sql("SELECT org_id, name, org_type, country_id FROM organizations ORDER BY name")
+    if error:
+        return jsonify({"error": error}), 500
+    return jsonify({"organizations": rows})
 
 # --------------------------------------------------------------------
 # API: MASTER DATA & LOOKUPS
@@ -930,8 +973,8 @@ def api_sample_queries():
     samples = [
         {
             "id": 1,
-            "title": "Recursive CTE Lineage Trace (EU Chocolate -> Farm Plots)",
-            "description": "Demonstrates recursive multi-table lineage traversal backward from retail chocolate to 3 farm plots in Ghana.",
+            "title": "Which farms supplied chocolate batch NL-CHOC-2026-0044?",
+            "description": "Traces backward from retail chocolate all the way to 3 cocoa farm plots in Ghana using a recursive query.",
             "sql": """WITH RECURSIVE batch_tree(parent_batch_id, child_batch_id, depth, path) AS (
     SELECT bl.parent_batch_id, bl.child_batch_id, 1, b_child.batch_code || ' <- ' || b_parent.batch_code
     FROM batch_lineage bl
@@ -944,7 +987,8 @@ def api_sample_queries():
     JOIN batch_tree bt ON bl.child_batch_id = bt.parent_batch_id
     JOIN batches b_parent ON bl.parent_batch_id = b_parent.batch_id
 )
-SELECT bt.depth, b.batch_code, b.batch_type, c.name AS commodity, o.name AS organization, p.region_name AS origin_plot, p.latitude, p.longitude, ppr.deforestation_free
+SELECT bt.depth AS step_number, b.batch_code, b.batch_type, c.name AS product, o.name AS company, p.region_name AS farm_plot, p.latitude, p.longitude, 
+       CASE WHEN ppr.deforestation_free = 1 THEN 'Safe' ELSE 'Deforested' END AS forest_status
 FROM batch_tree bt
 JOIN batches b ON bt.parent_batch_id = b.batch_id
 JOIN commodities c ON b.commodity_id = c.commodity_id
@@ -956,26 +1000,37 @@ ORDER BY bt.depth DESC;"""
         },
         {
             "id": 2,
-            "title": "Compliance Summary by Commodity & Country (Aggregates + Grouping)",
-            "description": "Multi-table JOIN aggregation computing batch counts, compliant volumes, and country risk levels.",
-            "sql": """SELECT c.name AS commodity, cntry.name AS country, cntry.risk_level,
-       COUNT(b.batch_id) AS total_batches,
-       SUM(CASE WHEN b.compliance_status = 'Compliant' THEN 1 ELSE 0 END) AS compliant_count,
-       SUM(CASE WHEN b.compliance_status = 'Non-Compliant' THEN 1 ELSE 0 END) AS non_compliant_count,
-       ROUND(SUM(b.quantity_kg), 2) AS total_kg
+            "title": "Which batches are blocked and why?",
+            "description": "Finds all blocked or high-risk batches and shows the deforestation status or country risk.",
+            "sql": """SELECT b.batch_code, c.name AS product, b.quantity_kg, o.name AS company, b.compliance_status AS status,
+       p.region_name AS source_plot, ppr.remarks AS failure_reason
 FROM batches b
 JOIN commodities c ON b.commodity_id = c.commodity_id
 JOIN organizations o ON b.created_by_org_id = o.org_id
-JOIN countries cntry ON o.country_id = cntry.country_id
-GROUP BY c.name, cntry.name, cntry.risk_level
-ORDER BY total_kg DESC;"""
+LEFT JOIN batch_plot_sources bps ON b.batch_id = bps.batch_id
+LEFT JOIN plots p ON bps.plot_id = p.plot_id
+LEFT JOIN plot_production_records ppr ON p.plot_id = ppr.plot_id
+WHERE b.compliance_status = 'Non-Compliant' OR ppr.deforestation_free = 0;"""
         },
         {
             "id": 3,
-            "title": "High-Risk Plots Violating 31 Dec 2020 Cut-off Date",
-            "description": "Identifies parcels with deforestation post-2020 and non-compliant satellite checks.",
-            "sql": """SELECT p.plot_id, p.region_name, o.name AS owner, cntry.name AS country,
-       ppr.production_start, ppr.production_end, ppr.deforestation_free, ppr.remarks
+            "title": "How many kg of product came from each country?",
+            "description": "Groups total kilograms and number of batches by country and risk level.",
+            "sql": """SELECT cntry.name AS country, cntry.risk_level AS country_risk,
+       COUNT(b.batch_id) AS total_batches,
+       ROUND(SUM(b.quantity_kg), 0) AS total_kg
+FROM batches b
+JOIN organizations o ON b.created_by_org_id = o.org_id
+JOIN countries cntry ON o.country_id = cntry.country_id
+GROUP BY cntry.name, cntry.risk_level
+ORDER BY total_kg DESC;"""
+        },
+        {
+            "id": 4,
+            "title": "Which farm plots were cleared after 31 Dec 2020?",
+            "description": "Shows farm plots where satellite scans detected tree clearance after the legal cut-off date.",
+            "sql": """SELECT p.plot_id, p.region_name AS plot_name, o.name AS owner_company, cntry.name AS country,
+       ppr.satellite_check_date, ppr.remarks AS satellite_scan_findings
 FROM plots p
 JOIN organizations o ON p.owner_org_id = o.org_id
 JOIN countries cntry ON p.country_id = cntry.country_id
@@ -983,40 +1038,96 @@ JOIN plot_production_records ppr ON p.plot_id = ppr.plot_id
 WHERE ppr.deforestation_free = 0;"""
         },
         {
-            "id": 4,
-            "title": "Polygon Geolocation Integrity Check (>4 Hectares Rule)",
-            "description": "Demonstrates Art. 9 validation ensuring all parcels over 4 hectares have >= 3 polygon points.",
-            "sql": """SELECT p.plot_id, p.region_name, p.area_hectares, p.geo_type, COUNT(ppp.point_id) AS vertices_count,
+            "id": 5,
+            "title": "Which plots are over 4 hectares but missing polygon borders?",
+            "description": "Checks the EU rule that any farm plot bigger than 4 hectares must have polygon boundaries.",
+            "sql": """SELECT p.plot_id, p.region_name AS plot_name, p.area_hectares, p.geo_type AS registered_shape,
+       COUNT(ppp.point_id) AS boundary_points_saved,
        CASE 
-           WHEN p.area_hectares > 4.0 AND p.geo_type = 'POLYGON' AND COUNT(ppp.point_id) >= 3 THEN 'VALID POLYGON'
-           WHEN p.area_hectares <= 4.0 AND p.geo_type = 'POINT' THEN 'VALID POINT'
-           ELSE 'INVALID GEOMETRY'
-       END AS validation_status
+           WHEN p.area_hectares > 4.0 AND p.geo_type = 'POLYGON' AND COUNT(ppp.point_id) >= 3 THEN 'Valid Boundary'
+           WHEN p.area_hectares <= 4.0 AND p.geo_type = 'POINT' THEN 'Valid Single Point'
+           ELSE 'Needs Action: Missing Boundary'
+       END AS check_result
 FROM plots p
 LEFT JOIN plot_polygon_points ppp ON p.plot_id = ppp.plot_id
-GROUP BY p.plot_id;"""
-        },
-        {
-            "id": 5,
-            "title": "Maritime Shipments and Port Logistics Audit",
-            "description": "Tracks international trade voyages connecting farm exporters to EU entry ports.",
-            "sql": """SELECT s.shipment_id, s.transport_mode, s.origin_port, s.destination_port, s.departure_date, s.arrival_date,
-       b.batch_code, c.name AS commodity, t.quantity_kg, org_from.name AS exporter, org_to.name AS importer
-FROM shipments s
-JOIN transactions t ON s.txn_id = t.txn_id
-JOIN batches b ON t.batch_id = b.batch_id
-JOIN commodities c ON b.commodity_id = c.commodity_id
-JOIN organizations org_from ON t.from_org_id = org_from.org_id
-JOIN organizations org_to ON t.to_org_id = org_to.org_id;"""
+GROUP BY p.plot_id
+ORDER BY p.area_hectares DESC;"""
         },
         {
             "id": 6,
-            "title": "Trigger Audit Log Frequency & Operations Summary",
-            "description": "Aggregates table modifications captured automatically by SQLite triggers.",
-            "sql": """SELECT table_name, action, COUNT(log_id) AS events_logged, MIN(changed_at) AS first_event, MAX(changed_at) AS latest_event
-FROM audit_log
-GROUP BY table_name, action
-ORDER BY events_logged DESC;"""
+            "title": "Which batches are ready for an EU Report?",
+            "description": "Shows all Approved batches that have not yet been placed on an EU Compliance Report.",
+            "sql": """SELECT b.batch_code, c.name AS product, b.quantity_kg, o.name AS company, b.created_date
+FROM batches b
+JOIN commodities c ON b.commodity_id = c.commodity_id
+JOIN organizations o ON b.created_by_org_id = o.org_id
+WHERE b.compliance_status = 'Compliant'
+  AND b.batch_id NOT IN (
+      SELECT db.batch_id FROM dds_batches db
+      JOIN due_diligence_statements dds ON db.dds_id = dds.dds_id
+      WHERE dds.status IN ('Submitted', 'Accepted')
+  );"""
+        },
+        {
+            "id": 7,
+            "title": "Who handled coffee batch IN-COF-RAW-2026-501 downstream?",
+            "description": "Traces forward from the harvest farm in India to the roasting factory.",
+            "sql": """WITH RECURSIVE forward_chain(parent_batch_id, child_batch_id, depth, chain_path) AS (
+    SELECT bl.parent_batch_id, bl.child_batch_id, 1, b_parent.batch_code || ' -> ' || b_child.batch_code
+    FROM batch_lineage bl
+    JOIN batches b_parent ON bl.parent_batch_id = b_parent.batch_id
+    JOIN batches b_child ON bl.child_batch_id = b_child.batch_id
+    WHERE b_parent.batch_code = 'IN-COF-RAW-2026-501'
+    UNION ALL
+    SELECT bl.parent_batch_id, bl.child_batch_id, fc.depth + 1, fc.chain_path || ' -> ' || b_child.batch_code
+    FROM batch_lineage bl
+    JOIN forward_chain fc ON bl.parent_batch_id = fc.child_batch_id
+    JOIN batches b_child ON bl.child_batch_id = b_child.batch_id
+)
+SELECT fc.depth AS step_number, b.batch_code AS downstream_batch, b.quantity_kg, b.compliance_status AS status,
+       o.name AS company, cntry.name AS location_country
+FROM forward_chain fc
+JOIN batches b ON fc.child_batch_id = b.batch_id
+JOIN organizations o ON b.created_by_org_id = o.org_id
+JOIN countries cntry ON o.country_id = cntry.country_id;"""
+        },
+        {
+            "id": 8,
+            "title": "Which farm plots are missing verified legal documents?",
+            "description": "Identifies farm plots where legal land documents are unverified or still pending.",
+            "sql": """SELECT p.plot_id, p.region_name AS plot_name, o.name AS owner_company, cntry.name AS country,
+       COALESCE(ld.doc_type, 'No Document Uploaded') AS document_type,
+       COALESCE(ld.file_reference, '-') AS document_code,
+       CASE WHEN ld.verified = 1 THEN 'Verified' ELSE 'Unverified / Pending' END AS verification_status
+FROM plots p
+JOIN organizations o ON p.owner_org_id = o.org_id
+JOIN countries cntry ON p.country_id = cntry.country_id
+LEFT JOIN legality_documents ld ON p.plot_id = ld.plot_id
+WHERE ld.verified IS NULL OR ld.verified = 0;"""
+        },
+        {
+            "id": 9,
+            "title": "What changes were saved automatically by database triggers?",
+            "description": "Shows the latest 10 database changes logged by SQLite insert and update triggers.",
+            "sql": """SELECT a.log_id, a.table_name, a.action AS operation, a.record_id, a.changed_at AS time_saved,
+       COALESCE(u.name, 'System Rule') AS who_changed_it
+FROM audit_log a
+LEFT JOIN users u ON a.user_id = u.user_id
+ORDER BY a.log_id DESC
+LIMIT 10;"""
+        },
+        {
+            "id": 10,
+            "title": "How much volume is handled by each company?",
+            "description": "Totals the kilograms of products created or traded by each business.",
+            "sql": """SELECT o.name AS company_name, o.org_type AS company_type, cntry.name AS country,
+       COUNT(b.batch_id) AS batches_handled,
+       ROUND(SUM(b.quantity_kg), 0) AS total_kg
+FROM organizations o
+JOIN countries cntry ON o.country_id = cntry.country_id
+LEFT JOIN batches b ON o.org_id = b.created_by_org_id
+GROUP BY o.org_id, o.name, o.org_type, cntry.name
+ORDER BY total_kg DESC;"""
         }
     ]
     return jsonify({"queries": samples})
@@ -1060,6 +1171,27 @@ def api_export_report(format_type):
 # --------------------------------------------------------------------
 # MAIN STARTUP
 # --------------------------------------------------------------------
+@app.route('/api/db/test-trigger', methods=['POST'])
+def api_test_trigger():
+    data = request.get_json() or {}
+    sql = data.get('sql', '').strip()
+    if not sql:
+        return jsonify({"success": False, "error": "No SQL provided"}), 400
+
+    db = get_db()
+    cursor = db.cursor()
+    try:
+        cursor.execute("SAVEPOINT trigger_test_sp")
+        cursor.execute(sql)
+        cursor.execute("ROLLBACK TO SAVEPOINT trigger_test_sp")
+        return jsonify({"success": True, "message": "Operation executed without triggering restriction."})
+    except Exception as e:
+        try:
+            cursor.execute("ROLLBACK TO SAVEPOINT trigger_test_sp")
+        except Exception:
+            pass
+        return jsonify({"success": False, "error": str(e), "aborted_by_trigger": True})
+
 if __name__ == '__main__':
     # Initialize database if needed
     if not os.path.exists(DB_FILE):

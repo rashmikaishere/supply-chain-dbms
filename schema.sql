@@ -493,7 +493,7 @@ BEGIN
             WHERE bps.batch_id = NEW.batch_id
               AND NOT EXISTS (
                   SELECT 1 FROM legality_documents ld
-                  WHERE (ld.plot_id = bps.plot_id OR ld.org_id = (SELECT owner_org_id FROM plots WHERE plot_id = bps.plot_id))
+                  WHERE (ld.plot_id = bps.plot_id OR (ld.plot_id IS NULL AND ld.org_id = (SELECT owner_org_id FROM plots WHERE plot_id = bps.plot_id)))
                     AND ld.verified = 1
               )
         )
