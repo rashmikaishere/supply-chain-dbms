@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EUDR TraceChain | Enterprise Compliance Platform &amp; Database Architecture</title>
+  <title>EUDR TraceChain | Simple Supply Chain Traceability DBMS</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -42,13 +42,6 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Leaflet.js (Map) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
-  <!-- Chart.js (Analytics) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
   <!-- Mermaid.js (ER Diagram) -->
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 
@@ -81,62 +74,62 @@
           </div>
           <div>
             <span class="text-sm font-bold text-white tracking-tight block">EUDR TraceChain</span>
-            <span class="block text-[9px] uppercase tracking-widest text-emerald-400 font-semibold">EUDR Compliance</span>
+            <span class="block text-[9px] uppercase tracking-widest text-emerald-400 font-semibold">Supply Chain DBMS</span>
           </div>
         </a>
       </div>
 
-      <!-- 2. MIDDLE (FLEXIBLE SCROLL): Collapsible Navigation Accordions -->
+      <!-- 2. MIDDLE (FLEXIBLE SCROLL): Collapsible Navigation -->
       <div class="sidebar-nav-scroll" id="sidebar-scrollable-nav">
 
         <!-- SECTION: HOME -->
         <div class="mb-3">
-          <button onclick="switchTab('dashboard')" class="nav-item-btn" data-tab="dashboard" id="nav-btn-dashboard" title="Home: story, key numbers, and overview" tabindex="0">
+          <button onclick="switchTab('dashboard')" class="nav-item-btn" data-tab="dashboard" id="nav-btn-dashboard" title="Home: story, counts, and overview">
             <i data-lucide="home" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
             <span>Home</span>
           </button>
         </div>
 
-        <!-- SECTION: START HERE -->
-        <div class="sidebar-section mb-3" id="sec-start-here">
-          <button class="sidebar-section-header" onclick="toggleSidebarSection('sec-start-here')" aria-expanded="true">
-            <span>START HERE</span>
+        <!-- SECTION: THE CHAIN -->
+        <div class="sidebar-section mb-3" id="sec-the-chain">
+          <button class="sidebar-section-header" onclick="toggleSidebarSection('sec-the-chain')" aria-expanded="true">
+            <span>THE CHAIN</span>
             <i data-lucide="chevron-down" class="w-3.5 h-3.5 sidebar-chevron"></i>
           </button>
           <div class="sidebar-section-content space-y-0.5 mt-1">
-            <button onclick="switchTabAndFocusTrace()" class="nav-item-btn" data-tab="batches-trace" id="nav-btn-track-product" title="Track a product journey from farm to EU" tabindex="0">
-              <i data-lucide="search" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
-              <span>Track a Product</span>
+            <button onclick="switchTab('suppliers')" class="nav-item-btn" data-tab="suppliers" id="nav-btn-suppliers" title="1. Suppliers">
+              <i data-lucide="building-2" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+              <span>1. Suppliers</span>
+            </button>
+            <button onclick="switchTab('farmers')" class="nav-item-btn" data-tab="farmers" id="nav-btn-farmers" title="2. Farmers">
+              <i data-lucide="users" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+              <span>2. Farmers</span>
+            </button>
+            <button onclick="switchTab('batches')" class="nav-item-btn" data-tab="batches" id="nav-btn-batches" title="3. Batches">
+              <i data-lucide="package" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+              <span>3. Batches</span>
+            </button>
+            <button onclick="switchTab('warehouses')" class="nav-item-btn" data-tab="warehouses" id="nav-btn-warehouses" title="4. Warehouses">
+              <i data-lucide="warehouse" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+              <span>4. Warehouses</span>
+            </button>
+            <button onclick="switchTab('shipments')" class="nav-item-btn" data-tab="shipments" id="nav-btn-shipments" title="5. Shipments">
+              <i data-lucide="truck" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+              <span>5. Shipments</span>
             </button>
           </div>
         </div>
 
-        <!-- SECTION: THE 5 STEPS -->
-        <div class="sidebar-section mb-3" id="sec-the-5-steps">
-          <button class="sidebar-section-header" onclick="toggleSidebarSection('sec-the-5-steps')" aria-expanded="true">
-            <span>THE 5 STEPS</span>
+        <!-- SECTION: TRACK -->
+        <div class="sidebar-section mb-3" id="sec-track">
+          <button class="sidebar-section-header" onclick="toggleSidebarSection('sec-track')" aria-expanded="true">
+            <span>TRACK</span>
             <i data-lucide="chevron-down" class="w-3.5 h-3.5 sidebar-chevron"></i>
           </button>
           <div class="sidebar-section-content space-y-0.5 mt-1">
-            <button onclick="switchTab('master-data')" class="nav-item-btn" data-tab="master-data" id="nav-btn-master-data" title="Step 1: Companies and farmers in the supply chain" tabindex="0">
-              <i data-lucide="building-2" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
-              <span>1. Companies &amp; Farmers</span>
-            </button>
-            <button onclick="switchTab('plots-map')" class="nav-item-btn" data-tab="plots-map" id="nav-btn-plots-map" title="Step 2: Farm plots, GPS locations, and satellite checks" tabindex="0">
-              <i data-lucide="map-pin" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
-              <span>2. Farm Plots &amp; Map</span>
-            </button>
-            <button onclick="switchTab('batches-trace')" class="nav-item-btn" data-tab="batches-trace" id="nav-btn-batches-trace" title="Step 3: Product batches and supply journey" tabindex="0">
-              <i data-lucide="package" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
-              <span>3. Product Batches</span>
-            </button>
-            <button onclick="switchTab('safety-check')" class="nav-item-btn" data-tab="safety-check" id="nav-btn-safety-check" title="Step 4: Check country risk, forest loss, and papers" tabindex="0">
-              <i data-lucide="shield-check" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
-              <span>4. Safety Check</span>
-            </button>
-            <button onclick="switchTab('eu-report')" class="nav-item-btn" data-tab="eu-report" id="nav-btn-eu-report" title="Step 5: Send official EU report (DDS)" tabindex="0">
-              <i data-lucide="file-check" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
-              <span>5. EU Report</span>
+            <button onclick="switchTab('track-product')" class="nav-item-btn" data-tab="track-product" id="nav-btn-track-product" title="Track a product journey forward or backward">
+              <i data-lucide="search" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
+              <span>Track a Product</span>
             </button>
           </div>
         </div>
@@ -150,90 +143,43 @@
             </span>
             <i data-lucide="chevron-down" class="w-3.5 h-3.5 sidebar-chevron"></i>
           </button>
-          <div class="sidebar-section-content mt-1">
-            
-            <!-- Sub-section: Structure -->
-            <div class="sidebar-subsection-label">Structure</div>
-            <button onclick="switchTab('db-er-diagram')" class="nav-item-btn nav-item-indented" data-tab="db-er-diagram" id="nav-btn-db-er-diagram" title="Visual diagram showing all tables and connections" tabindex="0">
+          <div class="sidebar-section-content space-y-0.5 mt-1">
+            <button onclick="switchTab('db-table-diagram')" class="nav-item-btn nav-item-indented" data-tab="db-table-diagram" id="nav-btn-db-table-diagram" title="Table Diagram showing foreign keys">
               <i data-lucide="network" class="w-3.5 h-3.5 mr-2 text-amber-400 flex-shrink-0"></i>
               <span>Table Diagram</span>
             </button>
-            <button onclick="switchTab('db-table-browser')" class="nav-item-btn nav-item-indented" data-tab="db-table-browser" id="nav-btn-db-table-browser" title="Browse raw rows in any database table" tabindex="0">
+            <button onclick="switchTab('db-data-tables')" class="nav-item-btn nav-item-indented" data-tab="db-data-tables" id="nav-btn-db-data-tables" title="Browse raw data tables">
               <i data-lucide="table" class="w-3.5 h-3.5 mr-2 text-amber-400 flex-shrink-0"></i>
               <span>Data Tables</span>
             </button>
-
-            <!-- Sub-section: Work with data -->
-            <div class="sidebar-subsection-label mt-1">Work with data</div>
-            <button onclick="switchTab('db-sql-console')" class="nav-item-btn nav-item-indented" data-tab="db-sql-console" id="nav-btn-db-sql-console" title="Run 10 ready-made queries or type custom SQL" tabindex="0">
+            <button onclick="switchTab('db-sql-console')" class="nav-item-btn nav-item-indented" data-tab="db-sql-console" id="nav-btn-db-sql-console" title="Ask the Database (SQL)">
               <i data-lucide="terminal" class="w-3.5 h-3.5 mr-2 text-amber-400 flex-shrink-0"></i>
               <span>Ask the Database (SQL)</span>
             </button>
-            <button onclick="switchTab('db-triggers-views')" class="nav-item-btn nav-item-indented" data-tab="db-triggers-views" id="nav-btn-db-triggers-views" title="Automatic rules that block illegal data and protect rules" tabindex="0">
-              <i data-lucide="zap" class="w-3.5 h-3.5 mr-2 text-amber-400 flex-shrink-0"></i>
-              <span>Automatic Rules</span>
-            </button>
-
-            <!-- Sub-section: Proof -->
-            <div class="sidebar-subsection-label mt-1">Proof</div>
-            <button onclick="switchTab('db-audit-log')" class="nav-item-btn nav-item-indented" data-tab="db-audit-log" id="nav-btn-db-audit-log" title="Timeline of all changes saved automatically" tabindex="0">
+            <button onclick="switchTab('db-change-history')" class="nav-item-btn nav-item-indented" data-tab="db-change-history" id="nav-btn-db-change-history" title="Timeline of all changes in change_log">
               <i data-lucide="history" class="w-3.5 h-3.5 mr-2 text-amber-400 flex-shrink-0"></i>
               <span>Change History</span>
-            </button>
-            <button onclick="switchTab('db-normalization')" class="nav-item-btn nav-item-indented" data-tab="db-normalization" id="nav-btn-db-normalization" title="Why our database design stops duplicate errors" tabindex="0">
-              <i data-lucide="check-circle" class="w-3.5 h-3.5 mr-2 text-amber-400 flex-shrink-0"></i>
-              <span>Why Our Design Is Good</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- SECTION: HELP -->
-        <div class="sidebar-section mb-2" id="sec-help">
-          <button class="sidebar-section-header" onclick="toggleSidebarSection('sec-help')" aria-expanded="true">
-            <span>HELP</span>
-            <i data-lucide="chevron-down" class="w-3.5 h-3.5 sidebar-chevron"></i>
-          </button>
-          <div class="sidebar-section-content space-y-0.5 mt-1">
-            <button onclick="switchTab('word-meanings')" class="nav-item-btn" data-tab="word-meanings" id="nav-btn-word-meanings" title="Simple meanings for all legal and technical words" tabindex="0">
-              <i data-lucide="book-open" class="w-4 h-4 mr-2.5 text-emerald-400 flex-shrink-0"></i>
-              <span>Word Meanings</span>
             </button>
           </div>
         </div>
 
       </div>
 
-      <!-- 3. BOTTOM (PINNED): Yellow Start Demo Tour, Reset Data, and User Profile Chip -->
+      <!-- 3. BOTTOM (PINNED): Reset Demo Data -->
       <div class="sidebar-bottom-pinned">
-        <button onclick="startGuidedDemo()" class="w-full flex items-center justify-center px-3 py-2 text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 rounded-lg shadow transition-all" title="Start 7-step guided demo tour">
-          <i data-lucide="play" class="w-3.5 h-3.5 mr-1.5 fill-current"></i>
-          <span>Start Demo Tour</span>
+        <button onclick="resetDemoData()" class="w-full flex items-center justify-center px-3 py-2 text-xs font-bold text-white bg-rose-700/80 hover:bg-rose-600 rounded-lg shadow transition-all" title="Reset all data back to original seed state">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 mr-1.5"></i>
+          <span>Reset Demo Data</span>
         </button>
-        
-        <div class="flex items-center justify-between px-1">
-          <button onclick="resetDemoDatabase()" class="text-[11px] font-semibold text-slate-400 hover:text-rose-400 transition-colors flex items-center" title="Reset all data back to original seed state">
-            <i data-lucide="rotate-ccw" class="w-3 h-3 mr-1"></i>
-            <span>Reset Demo Data</span>
-          </button>
-          <button onclick="switchTab('word-meanings')" class="text-[11px] text-emerald-400 hover:text-emerald-300 font-medium">Glossary</button>
-        </div>
-
-        <!-- User Profile Chip -->
-        <div class="flex items-center space-x-2 pt-2 border-t border-forest-800/80">
-          <div class="w-7 h-7 rounded-full bg-forest-800 border border-emerald-500/30 text-white flex items-center justify-center font-bold text-xs">
-            <span>EV</span>
-          </div>
-          <div class="text-left text-xs leading-tight">
-            <div class="font-semibold text-slate-200 text-[11px]">Elena Van Der Meer</div>
-            <div class="text-[9px] text-emerald-400">EU Importer &bull; Operator</div>
-          </div>
+        <div class="text-center pt-2 text-[10px] text-emerald-400/80 font-mono">
+          SQLite &bull; PRAGMA foreign_keys=ON &bull; 3NF
         </div>
       </div>
 
     </aside>
 
     <!-- ====================================================================
-         MAIN CONTENT AREA (SCROLLS INDEPENDENTLY)
+         MAIN CONTENT AREA
          ==================================================================== -->
     <div id="main-content-scroll">
       
@@ -246,35 +192,27 @@
             <i data-lucide="menu" class="w-5 h-5"></i>
           </button>
           <div class="flex items-center text-xs text-slate-500 space-x-1.5">
-            <span class="hidden sm:inline">EUDR TraceChain</span>
-            <span class="hidden sm:inline">/</span>
+            <span class="font-medium text-slate-600">EUDR TraceChain</span>
+            <span>/</span>
             <span id="breadcrumb-title" class="font-bold text-slate-900">Home</span>
           </div>
         </div>
 
-        <!-- Actions: Global Search, Show Database Action, View Switcher -->
+        <!-- Actions: Show Database Action Drawer, View Switcher -->
         <div class="flex items-center space-x-3">
           
-          <!-- Global Search (Ctrl+K) -->
-          <button onclick="openCommandPalette()" class="hidden md:flex items-center px-2.5 py-1 text-xs text-slate-500 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition-colors">
-            <i data-lucide="search" class="w-3.5 h-3.5 mr-1.5 text-slate-400"></i>
-            <span>Quick search...</span>
-            <kbd class="ml-2 px-1 text-[10px] font-mono bg-white border border-slate-300 rounded text-slate-500">Ctrl+K</kbd>
-          </button>
-
-          <!-- Show Database Action (Under the Hood) -->
-          <button onclick="toggleUnderTheHood()" class="flex items-center px-2.5 py-1 text-xs font-semibold text-forest-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg transition-all" title="View the SQL query running behind the scenes">
+          <!-- Show Database Action -->
+          <button onclick="toggleDatabaseActionDrawer()" class="flex items-center px-2.5 py-1 text-xs font-semibold text-forest-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg transition-all" title="View the SQL query and keys running behind the scenes">
             <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
             <i data-lucide="terminal" class="w-3.5 h-3.5 mr-1 text-emerald-700"></i>
-            <span class="hidden sm:inline">Show Database Action</span>
-            <span class="sm:hidden">SQL</span>
-            <span id="sql-counter-badge" class="ml-1.5 px-1 py-0.2 text-[10px] font-mono bg-emerald-200 text-emerald-800 rounded">0 ms</span>
+            <span>Show Database Action</span>
+            <span id="sql-counter-badge" class="ml-1.5 px-1 py-0.2 text-[10px] font-mono bg-emerald-200 text-emerald-800 rounded">Ready</span>
           </button>
 
           <!-- Global View Mode Switcher: [Simple View | Database View] -->
           <div class="view-mode-switcher" title="Toggle between friendly words and raw database column names">
-            <button onclick="setGlobalViewMode('simple')" id="view-mode-simple-btn" class="view-mode-btn active">Simple View</button>
-            <button onclick="setGlobalViewMode('database')" id="view-mode-db-btn" class="view-mode-btn">Database View</button>
+            <button onclick="setViewMode('simple')" id="view-mode-simple-btn" class="view-mode-btn active">Simple View</button>
+            <button onclick="setViewMode('database')" id="view-mode-db-btn" class="view-mode-btn">Database View</button>
           </div>
 
         </div>
@@ -287,1569 +225,886 @@
       <main class="flex-1 p-4 sm:p-6">
 
         <!-- ==============================================================
-             HOME (DASHBOARD)
+             PAGE: HOME (DASHBOARD)
              ============================================================== -->
-        <div id="tab-dashboard" class="tab-pane space-y-5">
+        <div id="tab-dashboard" class="tab-pane space-y-6">
           
           <!-- Standard 3-Part Header -->
           <div class="page-header-container">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <h1 class="text-xl font-extrabold text-slate-900">Home: Supply Chain Overview</h1>
-                <div class="what-is-this-box">
-                  <strong>What is this page?</strong> A summary of our entire supply chain. See approved batches, farm locations, and compliance checks at a glance.
-                </div>
+            <div>
+              <h1 class="text-xl font-extrabold text-slate-900">Home: Supply Chain Overview</h1>
+              <div class="what-is-this-box">
+                <strong>What is this page?</strong> A summary of our entire supply chain. Follow every product from the farmer to the shipment.
               </div>
             </div>
             <div class="header-chips-row">
-              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: batches, plots, due_diligence_statements</span>
-              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: suppliers, farmers, batches, warehouses, shipments</span>
+              <button onclick="toggleDatabaseActionDrawer()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
                 <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
               </button>
             </div>
           </div>
 
-          <!-- THE ONE-SENTENCE STORY & 5-STEP INTERACTIVE FLOW -->
-          <div class="story-flow-container">
-            <p class="story-lead-sentence">
-              &ldquo;EU law (EUDR) says products like cocoa, coffee, palm oil, soy, rubber, cattle and wood must NOT come from land that was cleared after 31 Dec 2020. This system tracks every product back to the exact farm and proves it.&rdquo;
+          <!-- THE ONE IDEA -->
+          <div class="story-flow-container bg-emerald-950 text-white p-5 rounded-2xl shadow-sm border border-emerald-800">
+            <div class="text-xs uppercase tracking-widest text-emerald-300 font-bold mb-1">THE ONE IDEA</div>
+            <p class="text-base sm:text-lg font-semibold leading-relaxed text-emerald-50">
+              &ldquo;Follow a product from the farmer to the shipment. Every step is saved in connected tables, and we trace it using Primary Keys and Foreign Keys.&rdquo;
             </p>
-            
-            <div class="five-step-flow">
-              <div onclick="switchTab('master-data')" class="flow-step-card" title="Click to view Step 1">
-                <div class="flow-step-icon"><i data-lucide="building-2" class="w-5 h-5"></i></div>
-                <span class="flow-step-number">Step 1</span>
-                <span class="flow-step-title">Companies</span>
-                <span class="text-[11px] text-slate-500 mt-1">Farmers &amp; Buyers</span>
+            <div class="mt-4 flex items-center flex-wrap gap-2 text-xs font-mono text-emerald-200">
+              <span class="bg-forest-900 px-2 py-1 rounded">Supplier (PK)</span>
+              <span>&rarr;</span>
+              <span class="bg-forest-900 px-2 py-1 rounded">Farmer (FK &rarr; Supplier)</span>
+              <span>&rarr;</span>
+              <span class="bg-forest-900 px-2 py-1 rounded">Batch (FK &rarr; Farmer)</span>
+              <span>&rarr;</span>
+              <span class="bg-forest-900 px-2 py-1 rounded">Warehouse / Shipment (Movements FKs)</span>
+            </div>
+          </div>
+
+          <!-- 5 COUNT CARDS -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div onclick="switchTab('suppliers')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-500 hover:shadow transition-all cursor-pointer">
+              <div class="flex items-center justify-between text-slate-500 mb-2">
+                <span class="text-xs font-semibold uppercase">1. Suppliers</span>
+                <i data-lucide="building-2" class="w-4 h-4 text-emerald-600"></i>
               </div>
-              <div onclick="switchTab('plots-map')" class="flow-step-card" title="Click to view Step 2">
-                <div class="flow-step-icon"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
-                <span class="flow-step-number">Step 2</span>
-                <span class="flow-step-title">Farm Plots</span>
-                <span class="text-[11px] text-slate-500 mt-1">GPS &amp; Satellites</span>
+              <div class="text-2xl font-black text-slate-900" id="count-suppliers">-</div>
+              <div class="text-[11px] text-slate-400 mt-1">Registered suppliers</div>
+            </div>
+
+            <div onclick="switchTab('farmers')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-500 hover:shadow transition-all cursor-pointer">
+              <div class="flex items-center justify-between text-slate-500 mb-2">
+                <span class="text-xs font-semibold uppercase">2. Farmers</span>
+                <i data-lucide="users" class="w-4 h-4 text-emerald-600"></i>
               </div>
-              <div onclick="switchTab('batches-trace')" class="flow-step-card" title="Click to view Step 3">
-                <div class="flow-step-icon"><i data-lucide="package" class="w-5 h-5"></i></div>
-                <span class="flow-step-number">Step 3</span>
-                <span class="flow-step-title">Batches</span>
-                <span class="text-[11px] text-slate-500 mt-1">Track the Journey</span>
+              <div class="text-2xl font-black text-slate-900" id="count-farmers">-</div>
+              <div class="text-[11px] text-slate-400 mt-1">Farm plots &amp; growers</div>
+            </div>
+
+            <div onclick="switchTab('batches')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-500 hover:shadow transition-all cursor-pointer">
+              <div class="flex items-center justify-between text-slate-500 mb-2">
+                <span class="text-xs font-semibold uppercase">3. Batches</span>
+                <i data-lucide="package" class="w-4 h-4 text-emerald-600"></i>
               </div>
-              <div onclick="switchTab('safety-check')" class="flow-step-card" title="Click to view Step 4">
-                <div class="flow-step-icon"><i data-lucide="shield-check" class="w-5 h-5"></i></div>
-                <span class="flow-step-number">Step 4</span>
-                <span class="flow-step-title">Safety Check</span>
-                <span class="text-[11px] text-slate-500 mt-1">3 Simple Questions</span>
+              <div class="text-2xl font-black text-slate-900" id="count-batches">-</div>
+              <div class="text-[11px] text-slate-400 mt-1">Harvest lots (kg)</div>
+            </div>
+
+            <div onclick="switchTab('warehouses')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-500 hover:shadow transition-all cursor-pointer">
+              <div class="flex items-center justify-between text-slate-500 mb-2">
+                <span class="text-xs font-semibold uppercase">4. Warehouses</span>
+                <i data-lucide="warehouse" class="w-4 h-4 text-emerald-600"></i>
               </div>
-              <div onclick="switchTab('eu-report')" class="flow-step-card" title="Click to view Step 5">
-                <div class="flow-step-icon"><i data-lucide="file-check" class="w-5 h-5"></i></div>
-                <span class="flow-step-number">Step 5</span>
-                <span class="flow-step-title">EU Report</span>
-                <span class="text-[11px] text-slate-500 mt-1">Legal Clearance</span>
+              <div class="text-2xl font-black text-slate-900" id="count-warehouses">-</div>
+              <div class="text-[11px] text-slate-400 mt-1">Storage points</div>
+            </div>
+
+            <div onclick="switchTab('shipments')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-500 hover:shadow transition-all cursor-pointer">
+              <div class="flex items-center justify-between text-slate-500 mb-2">
+                <span class="text-xs font-semibold uppercase">5. Shipments</span>
+                <i data-lucide="truck" class="w-4 h-4 text-emerald-600"></i>
+              </div>
+              <div class="text-2xl font-black text-slate-900" id="count-shipments">-</div>
+              <div class="text-[11px] text-slate-400 mt-1">Export loads</div>
+            </div>
+          </div>
+
+          <!-- THE CHAIN ILLUSTRATION (CLICKABLE WITH LIVE COUNTS) -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Click Any Step in the Chain to Open</h3>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <div onclick="switchTab('suppliers')" class="p-4 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl cursor-pointer transition-all text-center group">
+                <div class="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-forest-900 flex items-center justify-center font-bold text-sm mb-2 group-hover:scale-110 transition-transform">1</div>
+                <div class="font-bold text-sm text-slate-900">Supplier</div>
+                <div class="text-xs text-slate-500 mt-1"><span id="chain-count-suppliers" class="font-bold text-emerald-700">3</span> suppliers</div>
+                <div class="text-[10px] text-slate-400 mt-2 font-mono">suppliers.supplier_id (PK)</div>
+              </div>
+
+              <div onclick="switchTab('farmers')" class="p-4 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl cursor-pointer transition-all text-center group">
+                <div class="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-forest-900 flex items-center justify-center font-bold text-sm mb-2 group-hover:scale-110 transition-transform">2</div>
+                <div class="font-bold text-sm text-slate-900">Farmer</div>
+                <div class="text-xs text-slate-500 mt-1"><span id="chain-count-farmers" class="font-bold text-emerald-700">6</span> farmers</div>
+                <div class="text-[10px] text-slate-400 mt-2 font-mono">FK &rarr; suppliers</div>
+              </div>
+
+              <div onclick="switchTab('batches')" class="p-4 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl cursor-pointer transition-all text-center group">
+                <div class="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-forest-900 flex items-center justify-center font-bold text-sm mb-2 group-hover:scale-110 transition-transform">3</div>
+                <div class="font-bold text-sm text-slate-900">Batch</div>
+                <div class="text-xs text-slate-500 mt-1"><span id="chain-count-batches" class="font-bold text-emerald-700">6</span> batches</div>
+                <div class="text-[10px] text-slate-400 mt-2 font-mono">FK &rarr; farmers, products</div>
+              </div>
+
+              <div onclick="switchTab('warehouses')" class="p-4 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl cursor-pointer transition-all text-center group">
+                <div class="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-forest-900 flex items-center justify-center font-bold text-sm mb-2 group-hover:scale-110 transition-transform">4</div>
+                <div class="font-bold text-sm text-slate-900">Warehouse</div>
+                <div class="text-xs text-slate-500 mt-1"><span id="chain-count-warehouses" class="font-bold text-emerald-700">3</span> warehouses</div>
+                <div class="text-[10px] text-slate-400 mt-2 font-mono">movements.warehouse_id</div>
+              </div>
+
+              <div onclick="switchTab('shipments')" class="p-4 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-xl cursor-pointer transition-all text-center group">
+                <div class="w-10 h-10 mx-auto rounded-full bg-emerald-100 text-forest-900 flex items-center justify-center font-bold text-sm mb-2 group-hover:scale-110 transition-transform">5</div>
+                <div class="font-bold text-sm text-slate-900">Shipment</div>
+                <div class="text-xs text-slate-500 mt-1"><span id="chain-count-shipments" class="font-bold text-emerald-700">2</span> shipments</div>
+                <div class="text-[10px] text-slate-400 mt-2 font-mono">movements.shipment_id</div>
               </div>
             </div>
           </div>
 
-          <!-- SIMPLIFIED DEADLINE BANNER -->
-          <div class="p-3.5 rounded-xl bg-forest-900 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm">
-            <div class="flex items-center space-x-3">
-              <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
-                <i data-lucide="calendar" class="w-4 h-4"></i>
-              </div>
-              <p class="text-xs text-slate-200">
-                <strong>Important dates:</strong> <strong>31 Dec 2020</strong> = land must be forest-free since this date. <strong>30 Dec 2026</strong> = rule starts for large companies. <strong>30 Jun 2027</strong> = small companies.
-              </p>
+          <!-- RECENT CHANGES (LAST 8 CHANGE_LOG SENTENCES) -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-bold text-slate-900 flex items-center">
+                <i data-lucide="history" class="w-4 h-4 mr-2 text-emerald-600"></i>
+                Recent Database Changes
+              </h3>
+              <button onclick="switchTab('db-change-history')" class="text-xs text-emerald-600 hover:text-emerald-800 font-semibold">View All History &rarr;</button>
             </div>
-            <button onclick="switchTab('batches-trace')" class="px-3 py-1.5 text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-forest-950 rounded-lg transition-colors flex-shrink-0">
-              Track a Product &rarr;
-            </button>
-          </div>
-
-          <!-- 4 BIG CARDS WITH PLAIN TITLES & SUBTITLES -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Card 1 -->
-            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
-                <span>Total Batches</span>
-                <i data-lucide="package" class="w-4 h-4 text-slate-400"></i>
-              </div>
-              <div class="mt-2 text-2xl font-black text-slate-900" id="kpi-total-batches">-</div>
-              <div class="mt-1 text-xs text-slate-500" id="kpi-batches-sub">Lots of goods registered in database</div>
-            </div>
-
-            <!-- Card 2 -->
-            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
-                <span>Approved Batches</span>
-                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>
-              </div>
-              <div class="mt-2 text-2xl font-black text-emerald-600" id="kpi-compliant-batches">-</div>
-              <div class="mt-1 flex items-center text-xs text-emerald-700 font-semibold" id="kpi-compliance-rate-box">
-                <span id="kpi-compliance-rate">- %</span> &nbsp;compliant
-              </div>
-            </div>
-
-            <!-- Card 3 -->
-            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
-                <span>Farm Plots Tracked</span>
-                <i data-lucide="map-pin" class="w-4 h-4 text-blue-500"></i>
-              </div>
-              <div class="mt-2 text-2xl font-black text-slate-900" id="kpi-total-plots">-</div>
-              <div class="mt-1 text-xs text-slate-500" id="kpi-plots-sub">
-                <span id="kpi-high-risk-plots" class="font-bold text-rose-600">-</span> flagged high risk
-              </div>
-            </div>
-
-            <!-- Card 4 -->
-            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
-                <span>EU Reports Filed</span>
-                <i data-lucide="file-check-2" class="w-4 h-4 text-purple-500"></i>
-              </div>
-              <div class="mt-2 text-2xl font-black text-purple-700" id="kpi-total-dds">-</div>
-              <div class="mt-1 text-xs text-slate-500">Sent to EU customs portal</div>
+            <div id="home-recent-changes" class="space-y-2 text-xs">
+              <div class="text-slate-400 py-3">Loading recent changes...</div>
             </div>
           </div>
 
-          <!-- TWO SIMPLE CHARTS (DONUT + HORIZONTAL BARS) -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            <!-- Chart 1: Donut -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col">
-              <div class="flex items-center justify-between mb-2">
-                <div>
-                  <h3 class="font-bold text-sm text-slate-900">Are our products safe?</h3>
-                  <p class="text-xs text-slate-500">Current status of all registered product batches.</p>
-                </div>
-                <span class="status-badge status-badge-safe"><i data-lucide="pie-chart" class="w-3 h-3"></i> Donut</span>
-              </div>
-              <div class="h-60 relative flex items-center justify-center">
-                <canvas id="chartComplianceDonut"></canvas>
-              </div>
-              <div class="flex items-center justify-center space-x-5 text-xs text-slate-600 mt-2">
-                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5"></span> Approved</span>
-                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5"></span> Waiting</span>
-                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1.5"></span> Blocked</span>
-              </div>
-            </div>
+        </div>
 
-            <!-- Chart 2: Horizontal Bars -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col">
-              <div class="flex items-center justify-between mb-2">
-                <div>
-                  <h3 class="font-bold text-sm text-slate-900">Risk by country</h3>
-                  <p class="text-xs text-slate-500">High risk = more chance of deforestation.</p>
-                </div>
-                <span class="status-badge status-badge-waiting"><i data-lucide="bar-chart-2" class="w-3 h-3"></i> Countries</span>
-              </div>
-              <div class="h-60 relative">
-                <canvas id="chartCountryRiskHorizontal"></canvas>
-              </div>
-              <div class="flex items-center justify-center space-x-5 text-xs text-slate-600 mt-2">
-                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5"></span> Low Risk</span>
-                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5"></span> Standard Risk</span>
-                <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1.5"></span> High Risk</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- RECENT CHANGES (SAVED AUTOMATICALLY) -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-            <div class="flex items-center justify-between mb-3">
+        <!-- ==============================================================
+             PAGE: SUPPLIERS
+             ============================================================== -->
+        <div id="tab-suppliers" class="tab-pane hidden space-y-5">
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
               <div>
-                <h3 class="font-bold text-sm text-slate-900">Recent Changes (saved automatically)</h3>
-                <p class="text-xs text-slate-500">Database triggers automatically save every addition or edit.</p>
+                <h1 class="text-xl font-extrabold text-slate-900">1. Suppliers</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> The trading companies that buy produce from local farmers and export it.
+                </div>
               </div>
-              <button onclick="switchTab('db-audit-log')" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700">View All History &rarr;</button>
+              <button onclick="openModal('modal-add-supplier')" class="px-4 py-2 font-bold text-xs bg-forest-900 text-white rounded-lg hover:bg-forest-800 flex items-center shadow">
+                <i data-lucide="plus" class="w-4 h-4 mr-1.5"></i> Add Supplier
+              </button>
             </div>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database table used: suppliers</span>
+              <button onclick="toggleDatabaseActionDrawer()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
             <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead>
-                  <tr class="text-slate-400 border-b border-slate-100 bg-slate-50/50">
-                    <th class="py-2 px-3 font-semibold col-database">Log ID</th>
-                    <th class="py-2 px-3 font-semibold col-database">Table</th>
-                    <th class="py-2 px-3 font-semibold">What Happened</th>
-                    <th class="py-2 px-3 font-semibold">Time</th>
-                    <th class="py-2 px-3 font-semibold col-database">Raw Details</th>
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px]">
+                  <tr>
+                    <th class="p-3 w-16" data-col="id"><span class="view-simple">ID</span><span class="view-db font-mono">supplier_id</span></th>
+                    <th class="p-3"><span class="view-simple">Supplier Name</span><span class="view-db font-mono">name</span></th>
+                    <th class="p-3"><span class="view-simple">Country</span><span class="view-db font-mono">country</span></th>
+                    <th class="p-3"><span class="view-simple">Phone</span><span class="view-db font-mono">phone</span></th>
+                    <th class="p-3"><span class="view-simple">No. of Farmers</span><span class="view-db font-mono">COUNT(farmers)</span></th>
+                    <th class="p-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody id="dashboard-audit-tbody" class="divide-y divide-slate-100 text-slate-600">
-                  <tr><td colspan="5" class="py-4 text-center text-slate-400">Loading recent changes...</td></tr>
+                <tbody id="suppliers-table-body" class="divide-y divide-slate-100">
+                  <tr><td colspan="6" class="p-4 text-center text-slate-400">Loading suppliers...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==============================================================
+             PAGE: FARMERS
+             ============================================================== -->
+        <div id="tab-farmers" class="tab-pane hidden space-y-5">
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">2. Farmers</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> The individual growers who harvest the crops. Each farmer is connected to a specific supplier.
+                </div>
+              </div>
+              <button onclick="openModal('modal-add-farmer')" class="px-4 py-2 font-bold text-xs bg-forest-900 text-white rounded-lg hover:bg-forest-800 flex items-center shadow">
+                <i data-lucide="plus" class="w-4 h-4 mr-1.5"></i> Add Farmer
+              </button>
+            </div>
+            <div class="header-chips-row flex items-center justify-between flex-wrap gap-2">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database table used: farmers (FK &rarr; suppliers)</span>
+              <!-- Filter dropdown -->
+              <div class="flex items-center space-x-2 text-xs">
+                <label class="font-semibold text-slate-600">Show farmers of:</label>
+                <select id="farmer-supplier-filter" onchange="loadFarmers(this.value)" class="px-2.5 py-1 border border-slate-300 rounded-md text-xs bg-white"></select>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px]">
+                  <tr>
+                    <th class="p-3 w-16"><span class="view-simple">ID</span><span class="view-db font-mono">farmer_id</span></th>
+                    <th class="p-3"><span class="view-simple">Farmer Name</span><span class="view-db font-mono">name</span></th>
+                    <th class="p-3"><span class="view-simple">Supplier</span><span class="view-db font-mono">supplier_id (FK)</span></th>
+                    <th class="p-3"><span class="view-simple">Village</span><span class="view-db font-mono">village</span></th>
+                    <th class="p-3"><span class="view-simple">Deforestation-free land?</span><span class="view-db font-mono">deforestation_free</span></th>
+                    <th class="p-3"><span class="view-simple">Batches</span><span class="view-db font-mono">COUNT(batches)</span></th>
+                    <th class="p-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="farmers-table-body" class="divide-y divide-slate-100">
+                  <tr><td colspan="7" class="p-4 text-center text-slate-400">Loading farmers...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==============================================================
+             PAGE: BATCHES
+             ============================================================== -->
+        <div id="tab-batches" class="tab-pane hidden space-y-5">
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">3. Batches</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> Lots of harvested produce with their weights. Track total kg vs remaining kg with the supplier.
+                </div>
+              </div>
+              <button onclick="openModal('modal-add-batch')" class="px-4 py-2 font-bold text-xs bg-forest-900 text-white rounded-lg hover:bg-forest-800 flex items-center shadow">
+                <i data-lucide="plus" class="w-4 h-4 mr-1.5"></i> Add Batch
+              </button>
+            </div>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: batches, v_batch_balance, movements</span>
+              <button onclick="toggleDatabaseActionDrawer()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
+                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px]">
+                  <tr>
+                    <th class="p-3"><span class="view-simple">Batch Code</span><span class="view-db font-mono">batch_code</span></th>
+                    <th class="p-3"><span class="view-simple">Farmer</span><span class="view-db font-mono">farmer_id (FK)</span></th>
+                    <th class="p-3"><span class="view-simple">Supplier</span><span class="view-db font-mono">supplier_id</span></th>
+                    <th class="p-3"><span class="view-simple">Product</span><span class="view-db font-mono">product_id (FK)</span></th>
+                    <th class="p-3"><span class="view-simple">Total kg</span><span class="view-db font-mono">quantity_kg</span></th>
+                    <th class="p-3"><span class="view-simple">Remaining kg</span><span class="view-db font-mono">v_batch_balance</span></th>
+                    <th class="p-3"><span class="view-simple">Harvest Date</span><span class="view-db font-mono">harvest_date</span></th>
+                    <th class="p-3 text-right">Send Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="batches-table-body" class="divide-y divide-slate-100">
+                  <tr><td colspan="8" class="p-4 text-center text-slate-400">Loading batches...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==============================================================
+             PAGE: WAREHOUSES
+             ============================================================== -->
+        <div id="tab-warehouses" class="tab-pane hidden space-y-5">
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">4. Warehouses</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> Storage facilities that hold produce before export. Click any warehouse row to see stored batches.
+                </div>
+              </div>
+              <button onclick="openModal('modal-add-warehouse')" class="px-4 py-2 font-bold text-xs bg-forest-900 text-white rounded-lg hover:bg-forest-800 flex items-center shadow">
+                <i data-lucide="plus" class="w-4 h-4 mr-1.5"></i> Add Warehouse
+              </button>
+            </div>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: warehouses, movements</span>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px]">
+                  <tr>
+                    <th class="p-3 w-16"><span class="view-simple">ID</span><span class="view-db font-mono">warehouse_id</span></th>
+                    <th class="p-3"><span class="view-simple">Warehouse Name</span><span class="view-db font-mono">name</span></th>
+                    <th class="p-3"><span class="view-simple">City</span><span class="view-db font-mono">city</span></th>
+                    <th class="p-3"><span class="view-simple">Total kg Stored</span><span class="view-db font-mono">SUM(movements.quantity_kg)</span></th>
+                    <th class="p-3"><span class="view-simple">Batches Inside</span><span class="view-db font-mono">COUNT(movements)</span></th>
+                    <th class="p-3 text-right">Details</th>
+                  </tr>
+                </thead>
+                <tbody id="warehouses-table-body" class="divide-y divide-slate-100">
+                  <tr><td colspan="6" class="p-4 text-center text-slate-400">Loading warehouses...</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-        </div>
-
-        <!-- ==============================================================
-             STEP 1: COMPANIES & FARMERS (was Master Data & Actors)
-             ============================================================== -->
-        <div id="tab-master-data" class="tab-pane hidden space-y-5">
-          
-          <div class="page-header-container">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <h1 class="text-xl font-extrabold text-slate-900">1. Companies &amp; Farmers: who is in the chain?</h1>
-                <div class="what-is-this-box">
-                  <strong>What is this page?</strong> Every person and business in the supply chain: from smallholder farmer cooperatives to EU importers who place goods on the market.
-                </div>
-              </div>
-            </div>
-            <div class="header-chips-row">
-              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: organizations, countries, commodities, users</span>
-              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
-                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
-              </button>
-            </div>
-          </div>
-
-          <!-- Sub-tabs: Companies | Products | Countries | Legal Documents | Users -->
-          <div class="flex items-center justify-between flex-wrap gap-3">
-            <div class="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
-              <button onclick="loadMasterTable('organizations')" class="master-nav-btn px-3 py-1.5 text-xs font-bold rounded-md bg-forest-900 text-white shadow-sm" data-master="organizations">Companies</button>
-              <button onclick="loadMasterTable('commodities')" class="master-nav-btn px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900" data-master="commodities">Products</button>
-              <button onclick="loadMasterTable('countries')" class="master-nav-btn px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900" data-master="countries">Countries</button>
-              <button onclick="loadMasterTable('legality_documents')" class="master-nav-btn px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900" data-master="legality_documents">Legal Documents</button>
-              <button onclick="loadMasterTable('users')" class="master-nav-btn px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900" data-master="users">Users</button>
-            </div>
-            <button onclick="openAddMasterRecordModal()" class="px-3 py-1.5 text-xs font-bold text-white bg-forest-900 hover:bg-forest-800 rounded-lg shadow-sm transition-colors flex items-center">
-              <i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i> Add Company
-            </button>
-          </div>
-
-          <!-- Dynamic Master Table -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
+          <!-- Batches inside selected warehouse display -->
+          <div id="warehouse-detail-card" class="hidden bg-slate-50 border border-slate-200 p-4 rounded-xl">
             <div class="flex items-center justify-between mb-3">
-              <h3 class="font-bold text-sm text-slate-900" id="master-table-title">Companies</h3>
-              <span class="text-xs text-slate-500" id="master-table-count">Loading...</span>
+              <h3 class="text-xs font-bold uppercase text-slate-700" id="warehouse-detail-title">Batches Inside Warehouse</h3>
+              <button onclick="document.getElementById('warehouse-detail-card').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-xs">Close</button>
             </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead id="master-table-thead" class="text-slate-500 border-b border-slate-200 bg-slate-50/70"></thead>
-                <tbody id="master-table-tbody" class="divide-y divide-slate-100 text-slate-700"></tbody>
-              </table>
-            </div>
+            <div id="warehouse-detail-content" class="text-xs"></div>
           </div>
-
         </div>
 
         <!-- ==============================================================
-             STEP 2: FARM PLOTS & MAP (Map on top, table below)
+             PAGE: SHIPMENTS
              ============================================================== -->
-        <div id="tab-plots-map" class="tab-pane hidden space-y-5">
-          
+        <div id="tab-shipments" class="tab-pane hidden space-y-5">
           <div class="page-header-container">
             <div class="flex items-start justify-between flex-wrap gap-2">
               <div>
-                <h1 class="text-xl font-extrabold text-slate-900">2. Farm Plots: where was it grown?</h1>
+                <h1 class="text-xl font-extrabold text-slate-900">5. Shipments</h1>
                 <div class="what-is-this-box">
-                  <strong>What is this page?</strong> A plot is a piece of farmland with GPS location. EU law needs the exact location of every plot to prove it was not cleared after 31 Dec 2020.
+                  <strong>What is this page?</strong> Export shipments heading overseas. Only deforestation-free batches can be loaded onto shipments.
                 </div>
               </div>
-            </div>
-            <div class="header-chips-row">
-              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: plots, plot_polygon_points, plot_production_records</span>
-              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
-                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              <button onclick="openModal('modal-add-shipment')" class="px-4 py-2 font-bold text-xs bg-forest-900 text-white rounded-lg hover:bg-forest-800 flex items-center shadow">
+                <i data-lucide="plus" class="w-4 h-4 mr-1.5"></i> Create Shipment
               </button>
             </div>
-          </div>
-
-          <!-- Top Action Bar -->
-          <div class="flex items-center justify-between flex-wrap gap-3">
-            <div class="text-xs text-slate-600 flex items-center space-x-2">
-              <i data-lucide="info" class="w-4 h-4 text-emerald-600"></i>
-              <span><strong>Rule:</strong> Plots bigger than 4 hectares need a boundary (polygon). Smaller plots need one GPS point.</span>
-            </div>
-            <button onclick="openAddPlotModal()" class="px-3.5 py-1.5 text-xs font-bold text-white bg-forest-900 hover:bg-forest-800 rounded-lg shadow-sm transition-colors flex items-center">
-              <i data-lucide="plus" class="w-3.5 h-3.5 mr-1.5"></i> Add Farm Plot
-            </button>
-          </div>
-
-          <!-- MAP ON TOP (Split with Inspector) -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <!-- Map Container -->
-            <div class="lg:col-span-2 rounded-xl bg-white border border-slate-200 overflow-hidden shadow-sm flex flex-col h-[480px]">
-              <div class="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs font-semibold text-slate-700">
-                <div class="flex items-center space-x-2">
-                  <i data-lucide="map" class="w-4 h-4 text-emerald-600"></i>
-                  <span>World Map of Farm Plots</span>
-                </div>
-                <div class="flex items-center space-x-4 text-[11px]">
-                  <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5"></span> Safe</span>
-                  <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5"></span> Waiting</span>
-                  <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1.5"></span> Blocked</span>
-                </div>
-              </div>
-              <div id="plots-leaflet-map" class="flex-1 w-full z-10"></div>
-            </div>
-
-            <!-- Plot Side Inspector -->
-            <div class="rounded-xl bg-white border border-slate-200 p-5 shadow-sm flex flex-col h-[480px] overflow-y-auto">
-              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 class="font-bold text-sm text-slate-900">Plot Details</h3>
-                <span id="selected-plot-badge" class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-600 rounded">Click a plot</span>
-              </div>
-              <div id="plot-inspector-content" class="mt-4 space-y-4 text-xs text-slate-600 flex-1">
-                <div class="text-center py-16 text-slate-400">
-                  <i data-lucide="map-pin" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-                  <p>Click any farm plot on the map or in the table below to see who owns it, satellite scans, and legal papers.</p>
-                </div>
-              </div>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: shipments, movements</span>
             </div>
           </div>
 
-          <!-- TABLE BELOW -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-              <div>
-                <h3 class="font-bold text-sm text-slate-900">All Registered Farm Plots</h3>
-                <p class="text-xs text-slate-500">Every piece of land registered in our database.</p>
-              </div>
-              <input type="text" id="plots-table-search" oninput="filterPlotsTable()" placeholder="Search plots by name, owner, country..." class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg w-64 focus:outline-none focus:border-emerald-500">
-            </div>
+          <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
             <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead>
-                  <tr class="text-slate-500 border-b border-slate-200 bg-slate-50/70">
-                    <th class="py-2.5 px-3 font-semibold col-database">plot_id</th>
-                    <th class="py-2.5 px-3 font-semibold">Plot Name</th>
-                    <th class="py-2.5 px-3 font-semibold">Owner</th>
-                    <th class="py-2.5 px-3 font-semibold">Country</th>
-                    <th class="py-2.5 px-3 font-semibold">Crop</th>
-                    <th class="py-2.5 px-3 font-semibold">Size (hectares)</th>
-                    <th class="py-2.5 px-3 font-semibold">Shape</th>
-                    <th class="py-2.5 px-3 font-semibold">Status</th>
-                    <th class="py-2.5 px-3 font-semibold">Actions</th>
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px]">
+                  <tr>
+                    <th class="p-3"><span class="view-simple">Shipment Code</span><span class="view-db font-mono">shipment_code</span></th>
+                    <th class="p-3"><span class="view-simple">Destination</span><span class="view-db font-mono">destination</span></th>
+                    <th class="p-3"><span class="view-simple">Status</span><span class="view-db font-mono">status</span></th>
+                    <th class="p-3"><span class="view-simple">Total kg</span><span class="view-db font-mono">SUM(movements)</span></th>
+                    <th class="p-3"><span class="view-simple">Batches Inside</span><span class="view-db font-mono">COUNT(movements)</span></th>
+                    <th class="p-3 text-right">Details</th>
                   </tr>
                 </thead>
-                <tbody id="plots-table-tbody" class="divide-y divide-slate-100 text-slate-700">
-                  <tr><td colspan="9" class="py-4 text-center text-slate-400">Loading plots...</td></tr>
+                <tbody id="shipments-table-body" class="divide-y divide-slate-100">
+                  <tr><td colspan="6" class="p-4 text-center text-slate-400">Loading shipments...</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
 
+          <!-- Batches inside selected shipment display -->
+          <div id="shipment-detail-card" class="hidden bg-slate-50 border border-slate-200 p-4 rounded-xl">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-bold uppercase text-slate-700" id="shipment-detail-title">Batches Inside Shipment</h3>
+              <button onclick="document.getElementById('shipment-detail-card').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-xs">Close</button>
+            </div>
+            <div id="shipment-detail-content" class="text-xs"></div>
+          </div>
         </div>
 
         <!-- ==============================================================
-             STEP 3: PRODUCT BATCHES & TRACK A PRODUCT
+             PAGE: TRACK A PRODUCT
              ============================================================== -->
-        <div id="tab-batches-trace" class="tab-pane hidden space-y-5">
-          
+        <div id="tab-track-product" class="tab-pane hidden space-y-6">
           <div class="page-header-container">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <h1 class="text-xl font-extrabold text-slate-900">3. Product Batches: tracking products from farm to buyer</h1>
-                <div class="what-is-this-box">
-                  <strong>What is this page?</strong> A batch is one lot of product, e.g. 8,000 kg of cocoa. This tool tracks every step it took across companies to verify it is safe.
-                </div>
+            <div>
+              <h1 class="text-xl font-extrabold text-slate-900">Track a Product</h1>
+              <div class="what-is-this-box">
+                <strong>What is this page?</strong> Trace any product batch forward to warehouses and shipments, or trace any shipment back to the farm plot.
               </div>
             </div>
             <div class="header-chips-row">
-              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: batches, batch_lineage, batch_plot_sources</span>
-              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
-                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
-              </button>
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database view used: v_trace (JOIN across 5 connected tables)</span>
             </div>
           </div>
 
-          <!-- HERO FEATURE: TRACK A PRODUCT -->
-          <div class="p-6 rounded-xl bg-white border border-slate-200 shadow-sm space-y-5" id="hero-track-container">
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
-              <div class="flex-1 w-full sm:w-auto">
-                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 block mb-1">Hero Feature</span>
-                <h2 class="text-base font-bold text-slate-900">Track a Product: See the Journey</h2>
-                <p class="text-xs text-slate-500">Pick any batch or enter a batch code to see its full path to the farms.</p>
+          <!-- Selector controls -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Option 1: Trace a Batch Forward (Farm &rarr; Destination)</label>
+                <div class="flex gap-2">
+                  <select id="trace-batch-select" class="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-xs"></select>
+                  <button onclick="runTrace('batch')" class="px-4 py-2 bg-forest-900 text-white font-bold text-xs rounded-lg hover:bg-forest-800">Trace Forward</button>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Option 2: Trace a Shipment Backward (Shipment &rarr; Farm)</label>
+                <div class="flex gap-2">
+                  <select id="trace-shipment-select" class="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-xs"></select>
+                  <button onclick="runTrace('shipment')" class="px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-lg hover:bg-emerald-500">Trace Back to Farm</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Trace Visual Pathway Display -->
+          <div id="trace-result-container" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm min-h-[250px]">
+            <div class="text-center py-10 text-slate-400 text-xs">
+              Select a batch code or shipment code above to see the step-by-step foreign key chain.
+            </div>
+          </div>
+        </div>
+
+        <!-- ==============================================================
+             PAGE: TABLE DIAGRAM (SEE THE DATABASE)
+             ============================================================== -->
+        <div id="tab-db-table-diagram" class="tab-pane hidden space-y-6">
+          <div class="page-header-container">
+            <div>
+              <h1 class="text-xl font-extrabold text-slate-900">Table Diagram (ER Schema)</h1>
+              <div class="what-is-this-box">
+                <strong>What is this page?</strong> The 7 tables and their primary key &amp; foreign key relationships. Click any table for a one-line explanation.
+              </div>
+            </div>
+            <div class="header-chips-row">
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Generated dynamically via PRAGMA foreign_key_list</span>
+            </div>
+          </div>
+
+          <!-- Diagram cards container -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="table-diagram-cards">
+            <!-- Populated dynamically with table cards -->
+          </div>
+        </div>
+
+        <!-- ==============================================================
+             PAGE: DATA TABLES (BROWSER)
+             ============================================================== -->
+        <div id="tab-db-data-tables" class="tab-pane hidden space-y-5">
+          <div class="page-header-container">
+            <div class="flex items-start justify-between flex-wrap gap-2">
+              <div>
+                <h1 class="text-xl font-extrabold text-slate-900">Data Tables Browser</h1>
+                <div class="what-is-this-box">
+                  <strong>What is this page?</strong> Browse, search, and view raw rows from any table in the SQLite database.
+                </div>
               </div>
               <div class="flex items-center space-x-2">
-                <button onclick="printTraceCertificate()" class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors flex items-center">
-                  <i data-lucide="download" class="w-3.5 h-3.5 mr-1.5"></i> Download Trace Certificate
-                </button>
-              </div>
-            </div>
-
-            <!-- Search box & buttons -->
-            <div class="flex flex-col sm:flex-row items-center gap-3">
-              <div class="w-full sm:flex-1 relative">
-                <select id="trace-batch-select" onchange="runBatchTrace(this.value)" class="w-full px-3 py-2 text-xs font-mono font-medium border border-slate-300 rounded-lg bg-slate-50 focus:outline-none focus:border-emerald-500">
-                  <option value="NL-CHOC-2026-0044">NL-CHOC-2026-0044 &mdash; Chocolate Bar (Ghana Cocoa Chain)</option>
-                  <option value="NL-FEED-SOY-2026-90">NL-FEED-SOY-2026-90 &mdash; Animal Feed (Brazil Soya Chain)</option>
-                  <option value="DE-OLEO-PALM-2026-03">DE-OLEO-PALM-2026-03 &mdash; Palm Oil (Indonesia Palm Chain)</option>
-                  <option value="IN-COF-ROAST-2026-12">IN-COF-ROAST-2026-12 &mdash; Roasted Coffee (India Coffee Chain)</option>
-                  <option value="BR-SOY-FAIL-2026-09">BR-SOY-FAIL-2026-09 &mdash; Blocked Batch (Deforested Land)</option>
-                </select>
-              </div>
-              <button onclick="runBatchTrace(document.getElementById('trace-batch-select').value, 'backward')" class="px-3.5 py-2 text-xs font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors flex items-center justify-center w-full sm:w-auto">
-                <i data-lucide="arrow-left" class="w-3.5 h-3.5 mr-1.5"></i> Trace back to farms
-              </button>
-              <button onclick="runBatchTrace(document.getElementById('trace-batch-select').value, 'forward')" class="px-3.5 py-2 text-xs font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800 transition-colors flex items-center justify-center w-full sm:w-auto">
-                <span>Trace forward to buyers</span> <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1.5"></i>
-              </button>
-            </div>
-
-            <!-- Visual Journey Visualizer (Farm -> Co-op -> Processor -> Exporter -> EU Importer) -->
-            <div id="trace-tree-canvas" class="min-h-[220px] p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col justify-center">
-              <div class="text-center py-10 text-slate-400">
-                <i data-lucide="git-branch" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-                <p>Click &ldquo;Trace back to farms&rdquo; to draw the step-by-step visual journey.</p>
-              </div>
-            </div>
-
-            <!-- Resolved Plots & Details Container -->
-            <div id="trace-details-container" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-5 pt-3 border-t border-slate-100">
-              <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200">
-                <h4 class="font-bold text-xs text-slate-900 uppercase tracking-wider mb-2 flex items-center">
-                  <i data-lucide="map-pin" class="w-4 h-4 mr-1.5 text-emerald-600"></i>
-                  Source Farm Plots
-                </h4>
-                <div id="trace-plots-list" class="space-y-2 text-xs text-slate-700"></div>
-              </div>
-              <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200">
-                <h4 class="font-bold text-xs text-slate-900 uppercase tracking-wider mb-2 flex items-center">
-                  <i data-lucide="truck" class="w-4 h-4 mr-1.5 text-blue-600"></i>
-                  Custody Transfers &amp; Dates
-                </h4>
-                <div id="trace-txns-list" class="space-y-2 text-xs text-slate-700"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Batches Table -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-              <div>
-                <h3 class="font-bold text-sm text-slate-900">All Product Batches</h3>
-                <p class="text-xs text-slate-500">Every registered lot with weight, company, and safety status.</p>
-              </div>
-              <button onclick="openCreateBatchModal()" class="px-3.5 py-1.5 text-xs font-bold text-white bg-forest-900 hover:bg-forest-800 rounded-lg shadow-sm transition-colors flex items-center">
-                <i data-lucide="plus" class="w-3.5 h-3.5 mr-1"></i> Create Batch
-              </button>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead>
-                  <tr class="text-slate-500 border-b border-slate-200 bg-slate-50/70">
-                    <th class="py-2.5 px-3 font-semibold col-database">batch_id</th>
-                    <th class="py-2.5 px-3 font-semibold">Batch Code</th>
-                    <th class="py-2.5 px-3 font-semibold">Product</th>
-                    <th class="py-2.5 px-3 font-semibold">Weight</th>
-                    <th class="py-2.5 px-3 font-semibold">Company</th>
-                    <th class="py-2.5 px-3 font-semibold">Type</th>
-                    <th class="py-2.5 px-3 font-semibold">Status</th>
-                    <th class="py-2.5 px-3 font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="batches-table-tbody" class="divide-y divide-slate-100 text-slate-700">
-                  <tr><td colspan="8" class="py-4 text-center text-slate-400">Loading batches...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ==============================================================
-             STEP 4: SAFETY CHECK (was Risk Assessment)
-             ============================================================== -->
-        <div id="tab-safety-check" class="tab-pane hidden space-y-5">
-          
-          <div class="page-header-container">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <h1 class="text-xl font-extrabold text-slate-900">4. Safety Check: are products legal &amp; forest-friendly?</h1>
-                <div class="what-is-this-box">
-                  <strong>What is this page?</strong> We run 3 simple questions to verify every batch before it can be imported into the EU.
-                </div>
-              </div>
-            </div>
-            <div class="header-chips-row">
-              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: risk_assessments, mitigation_actions</span>
-              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
-                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
-              </button>
-            </div>
-          </div>
-
-          <!-- Top Action Bar -->
-          <div class="flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <h2 class="text-sm font-bold text-slate-900">3-Question Safety Checklist</h2>
-              <p class="text-xs text-slate-500">Every batch must answer YES to pass.</p>
-            </div>
-            <button onclick="openRiskAssessmentModal()" class="px-3.5 py-1.5 text-xs font-bold text-white bg-forest-900 hover:bg-forest-800 rounded-lg shadow-sm transition-colors flex items-center">
-              <i data-lucide="shield" class="w-3.5 h-3.5 mr-1.5"></i> Run Safety Check on a Batch
-            </button>
-          </div>
-
-          <!-- 3-Question Explanation Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs mb-2">1</div>
-              <h4 class="font-bold text-sm text-slate-900">1. Is the country risky?</h4>
-              <p class="text-xs text-slate-500 mt-1">Checks if the production country has high levels of illegal deforestation.</p>
-            </div>
-            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs mb-2">2</div>
-              <h4 class="font-bold text-sm text-slate-900">2. Was farm land cleared after 2020?</h4>
-              <p class="text-xs text-slate-500 mt-1">Satellite scans verify the forest canopy has been intact since 31 Dec 2020.</p>
-            </div>
-            <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
-              <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs mb-2">3</div>
-              <h4 class="font-bold text-sm text-slate-900">3. Are legal papers verified?</h4>
-              <p class="text-xs text-slate-500 mt-1">Land ownership titles and environmental permits must be verified by local authorities.</p>
-            </div>
-          </div>
-
-          <!-- Safety Checks Table -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-              <div>
-                <h3 class="font-bold text-sm text-slate-900">Batch Safety Check Results</h3>
-                <p class="text-xs text-slate-500">Big and clear outcomes: SAFE (green) or NEEDS ACTION (red).</p>
-              </div>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead>
-                  <tr class="text-slate-500 border-b border-slate-200 bg-slate-50/70">
-                    <th class="py-2.5 px-3 font-semibold col-database">assessment_id</th>
-                    <th class="py-2.5 px-3 font-semibold">Batch Code</th>
-                    <th class="py-2.5 px-3 font-semibold">Product</th>
-                    <th class="py-2.5 px-3 font-semibold">1. Country Safe?</th>
-                    <th class="py-2.5 px-3 font-semibold">2. Forest Intact?</th>
-                    <th class="py-2.5 px-3 font-semibold">3. Papers Checked?</th>
-                    <th class="py-2.5 px-3 font-semibold">Risk score (0=safest, 100=riskiest)</th>
-                    <th class="py-2.5 px-3 font-semibold">Final Result</th>
-                    <th class="py-2.5 px-3 font-semibold">What to do next</th>
-                  </tr>
-                </thead>
-                <tbody id="assessments-table-tbody" class="divide-y divide-slate-100 text-slate-700">
-                  <tr><td colspan="9" class="py-4 text-center text-slate-400">Loading safety checks...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ==============================================================
-             STEP 5: EU REPORT (was Due Diligence Statement)
-             ============================================================== -->
-        <div id="tab-eu-report" class="tab-pane hidden space-y-5">
-          
-          <div class="page-header-container">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <h1 class="text-xl font-extrabold text-slate-900">5. EU Report: official compliance statement</h1>
-                <div class="what-is-this-box">
-                  <strong>What is this page?</strong> Before selling in the EU, the first company must send an EU Compliance Report (also called DDS) with a reference number to prove the goods are clean.
-                </div>
-              </div>
-            </div>
-            <div class="header-chips-row">
-              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: due_diligence_statements, dds_batches</span>
-              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
-                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
-              </button>
-            </div>
-          </div>
-
-          <!-- Top Action Bar -->
-          <div class="flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <h2 class="text-sm font-bold text-slate-900">Submitted EU Compliance Reports</h2>
-              <p class="text-xs text-slate-500">Only batches that passed the Safety Check can be included in a report.</p>
-            </div>
-            <button onclick="openGenerateDDSModal()" class="px-3.5 py-1.5 text-xs font-bold text-forest-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-sm transition-colors flex items-center">
-              <i data-lucide="file-plus" class="w-3.5 h-3.5 mr-1.5"></i> Create EU Report
-            </button>
-          </div>
-
-          <!-- EU Reports Table -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead>
-                  <tr class="text-slate-500 border-b border-slate-200 bg-slate-50/70">
-                    <th class="py-2.5 px-3 font-semibold">Report number</th>
-                    <th class="py-2.5 px-3 font-semibold">Company</th>
-                    <th class="py-2.5 px-3 font-semibold col-database">Tax ID (EORI)</th>
-                    <th class="py-2.5 px-3 font-semibold">Batches included</th>
-                    <th class="py-2.5 px-3 font-semibold">Total kg</th>
-                    <th class="py-2.5 px-3 font-semibold">Date</th>
-                    <th class="py-2.5 px-3 font-semibold">Status</th>
-                  </tr>
-                </thead>
-                <tbody id="dds-table-tbody" class="divide-y divide-slate-100 text-slate-700">
-                  <tr><td colspan="7" class="py-4 text-center text-slate-400">Loading reports...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ==============================================================
-             SEE THE DATABASE: 1. TABLE DIAGRAM
-             ============================================================== -->
-        <div id="tab-db-er-diagram" class="tab-pane hidden space-y-4">
-          
-          <div class="page-header-container">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <h1 class="text-xl font-extrabold text-slate-900">Table Diagram: how tables connect</h1>
-                <div class="what-is-this-box">
-                  <strong>What is this page?</strong> Each box is a table. Each line shows how tables connect. Click any table to see a 1-sentence explanation and example row.
-                </div>
-              </div>
-            </div>
-            <div class="header-chips-row">
-              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database tables used: 18 tables in 3rd Normal Form (3NF)</span>
-              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
-                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
-              </button>
-            </div>
-          </div>
-
-          <!-- Toolbar & Controls -->
-          <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-            <!-- Plain English Legend -->
-            <div class="flex items-center space-x-3 text-xs">
-              <span class="flex items-center font-semibold text-slate-700">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5"></span>
-                Key = unique ID of a row
-              </span>
-              <span class="flex items-center font-semibold text-slate-700">
-                <span class="w-2.5 h-2.5 rounded-full bg-blue-500 mr-1.5"></span>
-                Link = points to a row in another table
-              </span>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2">
-              <!-- Focus Table Select -->
-              <div class="flex items-center space-x-1.5">
-                <label class="text-xs font-semibold text-slate-600">Focus:</label>
-                <select id="er-focus-table-select" onchange="focusERTable(this.value)" class="px-2.5 py-1 text-xs font-mono border border-slate-300 rounded-lg bg-slate-50 text-slate-800 focus:outline-none">
-                  <option value="">-- Pick Table --</option>
-                </select>
-              </div>
-
-              <!-- View switch: Studio / Cards / Mermaid -->
-              <div class="bg-slate-100 p-0.5 rounded-lg border border-slate-200 flex items-center">
-                <button onclick="switchERView('studio')" id="er-view-btn-studio" class="px-2.5 py-1 text-xs font-bold bg-white text-forest-900 shadow-sm rounded-md transition-all">Visual Diagram</button>
-                <button onclick="switchERView('cards')" id="er-view-btn-cards" class="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all">Table Cards</button>
-                <button onclick="switchERView('mermaid')" id="er-view-btn-mermaid" class="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all">SQL Code</button>
-              </div>
-
-              <!-- Zoom Controls -->
-              <div class="flex items-center space-x-1 bg-slate-100 border border-slate-300 rounded-lg p-0.5">
-                <button onclick="zoomERDiagram(0.2)" title="Zoom In" class="p-1 text-slate-700 hover:bg-white rounded"><i data-lucide="zoom-in" class="w-3.5 h-3.5"></i></button>
-                <button onclick="zoomERDiagram(-0.2)" title="Zoom Out" class="p-1 text-slate-700 hover:bg-white rounded"><i data-lucide="zoom-out" class="w-3.5 h-3.5"></i></button>
-                <button onclick="resetERZoom()" title="Reset Zoom" class="px-1.5 text-xs font-mono font-bold text-slate-700 hover:bg-white rounded"><span id="er-zoom-level-label">100%</span></button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Studio Canvas -->
-          <div id="er-studio-view" class="relative rounded-2xl bg-[#0F172A] border border-slate-800 shadow-2xl overflow-hidden h-[620px] select-none">
-            <div id="er-canvas-viewport" class="w-full h-full relative overflow-hidden cursor-grab active:cursor-grabbing">
-              <div id="er-canvas-stage" class="absolute inset-0 origin-top-left" style="transform: translate(0px, 0px) scale(1);">
-                <svg id="er-svg-lines" class="absolute inset-0 w-[5000px] h-[5000px] pointer-events-none z-10"></svg>
-                <div id="er-nodes-layer" class="absolute inset-0 w-[5000px] h-[5000px] z-20 pointer-events-auto"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- View 2: Cards Grid -->
-          <div id="er-cards-view" class="hidden">
-            <div id="er-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-          </div>
-
-          <!-- View 3: Mermaid Schema Code -->
-          <div id="er-mermaid-view" class="hidden bg-slate-900 rounded-xl p-4 border border-slate-800 text-xs font-mono text-emerald-400 overflow-x-auto">
-            <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
-              <span class="text-slate-400 font-sans">Full Schema Mermaid Definition</span>
-              <button onclick="copyMermaidCode()" class="px-2.5 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-white rounded">Copy Code</button>
-            </div>
-            <pre id="er-mermaid-code-pre" class="max-h-[500px] overflow-y-auto"></pre>
-          </div>
-
-        </div>
-
-        <!-- ==============================================================
-             SEE THE DATABASE: 2. DATA TABLES
-             ============================================================== -->
-        <div id="tab-db-table-browser" class="tab-pane hidden space-y-4">
-          
-          <div class="page-header-container">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <h1 class="text-xl font-extrabold text-slate-900">Data Tables: browse raw database rows</h1>
-                <div class="what-is-this-box">
-                  <strong>What is this page?</strong> View the real data stored in SQLite. Click any link number (foreign key) to immediately jump to the related record in the other table.
-                </div>
-              </div>
-            </div>
-            <div class="header-chips-row">
-              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Viewing table: <span id="db-chip-table-name">batches</span></span>
-              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
-                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
-              </button>
-            </div>
-          </div>
-
-          <!-- Table Selector & Live Subtitle Line -->
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div class="flex items-center space-x-2">
-                <label class="text-xs font-bold text-slate-700">Choose Table:</label>
-                <select id="db-browser-table-select" onchange="onTableBrowserSelect(this.value)" class="px-3 py-1.5 text-xs font-bold border border-slate-300 rounded-lg bg-slate-50 text-slate-900 focus:outline-none focus:border-emerald-500">
+                <select id="raw-table-selector" onchange="loadRawTableData(this.value)" class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-bold bg-white">
+                  <option value="suppliers">suppliers</option>
+                  <option value="farmers">farmers</option>
+                  <option value="products">products</option>
                   <option value="batches">batches</option>
-                  <option value="batch_lineage">batch_lineage</option>
-                  <option value="batch_plot_sources">batch_plot_sources</option>
-                  <option value="plots">plots</option>
-                  <option value="plot_polygon_points">plot_polygon_points</option>
-                  <option value="plot_production_records">plot_production_records</option>
-                  <option value="risk_assessments">risk_assessments</option>
-                  <option value="mitigation_actions">mitigation_actions</option>
-                  <option value="due_diligence_statements">due_diligence_statements</option>
-                  <option value="dds_batches">dds_batches</option>
-                  <option value="organizations">organizations</option>
-                  <option value="users">users</option>
-                  <option value="countries">countries</option>
-                  <option value="commodities">commodities</option>
-                  <option value="transactions">transactions</option>
+                  <option value="warehouses">warehouses</option>
                   <option value="shipments">shipments</option>
-                  <option value="legality_documents">legality_documents</option>
-                  <option value="audit_log">audit_log</option>
+                  <option value="movements">movements</option>
+                  <option value="change_log">change_log</option>
                 </select>
+                <input type="text" id="raw-table-search" oninput="filterRawTable(this.value)" placeholder="Search table..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs">
               </div>
-
-              <!-- Search inside table -->
-              <div class="flex items-center space-x-2 w-full sm:w-auto">
-                <input type="text" id="db-browser-search" onkeydown="if(event.key==='Enter') executeTableBrowserSearch()" placeholder="Search this table..." class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg w-full sm:w-56 focus:outline-none">
-                <button onclick="executeTableBrowserSearch()" class="px-3 py-1.5 text-xs font-semibold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Search</button>
-              </div>
-            </div>
-
-            <!-- "What is this table for?" Dynamic Subtitle Line -->
-            <div class="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded-lg text-xs text-forest-900 flex items-center space-x-2">
-              <i data-lucide="help-circle" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
-              <span><strong>What is this table for?</strong> <span id="table-purpose-explanation">This table stores each lot of product (like 8,000 kg of cocoa) and its safety status.</span></span>
             </div>
           </div>
 
-          <!-- Table Container -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
-            <div class="flex items-center justify-between text-xs text-slate-500">
-              <span id="db-browser-rowcount-label">- total rows</span>
-              <span id="db-browser-latency-label">- ms</span>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead id="db-browser-thead" class="text-slate-500 border-b border-slate-200 bg-slate-50/70"></thead>
-                <tbody id="db-browser-tbody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+          <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div class="overflow-x-auto max-h-[500px]">
+              <table class="w-full text-xs text-left" id="raw-browser-table">
+                <thead id="raw-browser-thead" class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px] sticky top-0"></thead>
+                <tbody id="raw-browser-tbody" class="divide-y divide-slate-100 font-mono text-[11px]"></tbody>
               </table>
             </div>
-
-            <!-- Pagination -->
-            <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-              <span id="db-browser-page-info">Page 1</span>
-              <div class="space-x-1">
-                <button onclick="paginateTableBrowser(-1)" class="px-2.5 py-1 border border-slate-300 rounded hover:bg-slate-50">&larr; Previous</button>
-                <button onclick="paginateTableBrowser(1)" class="px-2.5 py-1 border border-slate-300 rounded hover:bg-slate-50">Next &rarr;</button>
-              </div>
-            </div>
           </div>
-
         </div>
 
         <!-- ==============================================================
-             SEE THE DATABASE: 3. ASK THE DATABASE (SQL)
+             PAGE: ASK THE DATABASE (SQL CONSOLE)
              ============================================================== -->
         <div id="tab-db-sql-console" class="tab-pane hidden space-y-5">
-          
           <div class="page-header-container">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <h1 class="text-xl font-extrabold text-slate-900">Ask the Database (SQL): run queries in plain English</h1>
-                <div class="what-is-this-box">
-                  <strong>What is this page?</strong> Click any of the 10 plain-English questions below to run real SQL against the database, or write your own custom SELECT query.
-                </div>
-              </div>
-            </div>
-            <div class="header-chips-row">
-              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> SQLite 3NF Database Engine</span>
-              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
-                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
-              </button>
-            </div>
-          </div>
-
-          <!-- 10 READY-MADE PLAIN ENGLISH QUESTION BUTTONS -->
-          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
             <div>
-              <h3 class="font-bold text-sm text-slate-900">10 Ready-Made Questions (Click to Run)</h3>
-              <p class="text-xs text-slate-500">Pick any question to automatically load the SQL, run it, and see the explanation.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2" id="plain-sql-buttons-container">
-              <!-- Rendered via JS -->
-            </div>
-          </div>
-
-          <!-- SQL Editor & Run Box -->
-          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <i data-lucide="code" class="w-4 h-4 text-emerald-600"></i>
-                <h3 class="font-bold text-sm text-slate-900">SQL Code</h3>
-              </div>
-              <button onclick="runConsoleQuery()" class="px-4 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-sm transition-colors flex items-center">
-                <i data-lucide="play" class="w-3.5 h-3.5 mr-1.5 fill-current"></i> Run Query
-              </button>
-            </div>
-
-            <textarea id="sql-console-editor" rows="6" class="w-full font-mono text-xs p-3 bg-slate-900 text-emerald-300 rounded-lg border border-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
-
-            <!-- Explanation of current query -->
-            <div id="current-query-explanation-box" class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700">
-              <strong>What this query does:</strong> <span id="current-query-explanation-text">Select a question above or click Run Query.</span>
-            </div>
-
-            <!-- Error Box -->
-            <div id="sql-console-error" class="hidden p-3 bg-rose-50 text-rose-800 border border-rose-200 rounded-lg text-xs font-mono"></div>
-
-            <!-- Results Table -->
-            <div class="space-y-2">
-              <div class="flex items-center justify-between text-xs text-slate-500">
-                <span class="font-bold text-slate-700">Query Results</span>
-                <span id="sql-console-stats">- rows &bull; - ms</span>
-              </div>
-              <div class="overflow-x-auto max-h-96 border border-slate-200 rounded-lg">
-                <table class="w-full text-left text-xs">
-                  <thead id="sql-results-thead" class="text-slate-500 border-b border-slate-200 bg-slate-50 sticky top-0"></thead>
-                  <tbody id="sql-results-tbody" class="divide-y divide-slate-100 text-slate-700"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ==============================================================
-             SEE THE DATABASE: 4. AUTOMATIC RULES (Triggers & Views)
-             ============================================================== -->
-        <div id="tab-db-triggers-views" class="tab-pane hidden space-y-5">
-          
-          <div class="page-header-container">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <h1 class="text-xl font-extrabold text-slate-900">Automatic Rules: database triggers and views</h1>
-                <div class="what-is-this-box">
-                  <strong>What is this page?</strong> Database rules run automatically on every insert, update, or delete. If anyone tries to approve illegal or deforested goods, the database stops them automatically.
-                </div>
+              <h1 class="text-xl font-extrabold text-slate-900">Ask the Database (SQL Console)</h1>
+              <div class="what-is-this-box">
+                <strong>What is this page?</strong> Run read-only SELECT queries. Click any of the 6 buttons below for ready-made SQL answers.
               </div>
             </div>
             <div class="header-chips-row">
-              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> SQLite Triggers, Views &amp; Indexes</span>
-              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
-                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
+              <span class="db-chip"><i data-lucide="shield" class="w-3 h-3 mr-1 text-emerald-600"></i> Read-only mode &bull; SELECT and WITH statements only</span>
+            </div>
+          </div>
+
+          <!-- 6 PRESET BUTTONS -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <span class="text-xs font-bold text-slate-500 uppercase">Ready-made SQL Questions:</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              <button onclick="runPresetQuery(1)" class="p-2.5 text-left text-xs bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-lg font-medium transition-colors">
+                <div class="font-bold text-slate-800">1. Farmers under each supplier</div>
+                <div class="text-[10px] text-slate-500 font-mono">JOIN suppliers &amp; farmers</div>
+              </button>
+
+              <button onclick="runPresetQuery(2)" class="p-2.5 text-left text-xs bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-lg font-medium transition-colors">
+                <div class="font-bold text-slate-800">2. Kg per farmer</div>
+                <div class="text-[10px] text-slate-500 font-mono">SUM(quantity_kg) GROUP BY</div>
+              </button>
+
+              <button onclick="runPresetQuery(3)" class="p-2.5 text-left text-xs bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-lg font-medium transition-colors">
+                <div class="font-bold text-slate-800">3. What is inside each warehouse?</div>
+                <div class="text-[10px] text-slate-500 font-mono">JOIN warehouses &amp; movements</div>
+              </button>
+
+              <button onclick="runPresetQuery(4)" class="p-2.5 text-left text-xs bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-lg font-medium transition-colors">
+                <div class="font-bold text-slate-800">4. What is inside each shipment?</div>
+                <div class="text-[10px] text-slate-500 font-mono">JOIN shipments &amp; movements</div>
+              </button>
+
+              <button onclick="runPresetQuery(5)" class="p-2.5 text-left text-xs bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-lg font-medium transition-colors">
+                <div class="font-bold text-slate-800">5. Full trace of a shipment (5 tables)</div>
+                <div class="text-[10px] text-slate-500 font-mono">Shipment &rarr; Batch &rarr; Farmer &rarr; Supplier</div>
+              </button>
+
+              <button onclick="runPresetQuery(6)" class="p-2.5 text-left text-xs bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-lg font-medium transition-colors">
+                <div class="font-bold text-slate-800">6. Total kg per product</div>
+                <div class="text-[10px] text-slate-500 font-mono">SUM(kg) GROUP BY products</div>
               </button>
             </div>
           </div>
 
-          <!-- Automatic Rules Cards with "Try it" Live Demo Buttons -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="triggers-cards-container">
-            
-            <!-- Rule 1: Block Approving Deforested Batches -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
-              <div>
-                <div class="flex items-center justify-between mb-1.5">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-100 text-rose-800">BEFORE UPDATE Trigger</span>
-                  <span class="text-[11px] text-slate-400 font-mono">trg_validate_batch_compliance_promotion</span>
-                </div>
-                <h3 class="font-bold text-sm text-slate-900">Rule 1: Block Approving Deforested Batches</h3>
-                <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                  If anyone tries to set a batch to &ldquo;Compliant&rdquo;, this trigger checks all origin farm plots. If any plot had deforestation after 31 Dec 2020, the database aborts the update immediately.
-                </p>
-              </div>
-              <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
-                <span class="text-[11px] text-slate-500 font-mono">Target: batches</span>
-                <button onclick="tryTriggerDemo('deforestation')" class="px-3 py-1.5 text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg transition-colors flex items-center">
-                  <i data-lucide="play" class="w-3 h-3 mr-1 fill-current"></i> Try It: See DB Block Illegal Approval
-                </button>
-              </div>
-            </div>
-
-            <!-- Rule 2: Block Approving Batches with Missing Legal Papers -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
-              <div>
-                <div class="flex items-center justify-between mb-1.5">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 text-amber-800">BEFORE UPDATE Trigger</span>
-                  <span class="text-[11px] text-slate-400 font-mono">trg_validate_batch_compliance_promotion</span>
-                </div>
-                <h3 class="font-bold text-sm text-slate-900">Rule 2: Block Batches Missing Verified Legal Papers</h3>
-                <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Checks that every origin plot has a verified land title and environmental permit. If papers are unverified (like the Pelalawan plot), the database refuses to approve the batch.
-                </p>
-              </div>
-              <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
-                <span class="text-[11px] text-slate-500 font-mono">Target: batches</span>
-                <button onclick="tryTriggerDemo('unverified_docs')" class="px-3 py-1.5 text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg transition-colors flex items-center">
-                  <i data-lucide="play" class="w-3 h-3 mr-1 fill-current"></i> Try It: See DB Require Verified Papers
-                </button>
-              </div>
-            </div>
-
-            <!-- Rule 3: Enforce Polygons on Plots > 4 Hectares -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
-              <div>
-                <div class="flex items-center justify-between mb-1.5">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-100 text-blue-800">BEFORE INSERT Trigger</span>
-                  <span class="text-[11px] text-slate-400 font-mono">trg_validate_plot_polygon_req_insert</span>
-                </div>
-                <h3 class="font-bold text-sm text-slate-900">Rule 3: Enforce Polygons on Plots &gt; 4 Hectares</h3>
-                <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Under Article 9 of EUDR, any farm plot over 4.0 hectares must be saved with a polygon boundary (multiple GPS vertices), not a single point.
-                </p>
-              </div>
-              <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
-                <span class="text-[11px] text-slate-500 font-mono">Target: plots</span>
-                <button onclick="tryTriggerDemo('polygon_req')" class="px-3 py-1.5 text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 rounded-lg transition-colors flex items-center">
-                  <i data-lucide="play" class="w-3 h-3 mr-1 fill-current"></i> Try It: See DB Require Polygon
-                </button>
-              </div>
-            </div>
-
-            <!-- Rule 4: Prevent Blending Blocked Goods -->
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
-              <div>
-                <div class="flex items-center justify-between mb-1.5">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-100 text-rose-800">BEFORE INSERT Trigger</span>
-                  <span class="text-[11px] text-slate-400 font-mono">trg_prevent_mixed_non_compliant_parent</span>
-                </div>
-                <h3 class="font-bold text-sm text-slate-900">Rule 4: Prevent Blending Blocked Goods</h3>
-                <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Companies are not allowed to mix illegal batches into clean product to hide them. This trigger blocks adding any Non-Compliant parent batch into a processing recipe.
-                </p>
-              </div>
-              <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
-                <span class="text-[11px] text-slate-500 font-mono">Target: batch_lineage</span>
-                <button onclick="tryTriggerDemo('blending')" class="px-3 py-1.5 text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg transition-colors flex items-center">
-                  <i data-lucide="play" class="w-3 h-3 mr-1 fill-current"></i> Try It: See DB Stop Mixed Blending
-                </button>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Views and Indexes Section -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
-            <h3 class="font-bold text-sm text-slate-900">Pre-computed Database Views (Fast Analytics)</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="views-list-container">
-              <!-- Rendered via JS -->
+          <!-- SQL editor and run button -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+            <textarea id="sql-console-input" rows="4" class="w-full p-3 font-mono text-xs bg-slate-900 text-emerald-300 rounded-lg focus:outline-none" placeholder="Write or select a SELECT query here..."></textarea>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400" id="sql-query-timing">Query time: -</span>
+              <button onclick="executeCustomSQL()" class="px-5 py-2 font-bold text-xs bg-forest-900 text-white rounded-lg hover:bg-forest-800">Run SQL Query</button>
             </div>
           </div>
 
+          <!-- Query result table -->
+          <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div class="overflow-x-auto max-h-[400px]">
+              <table class="w-full text-xs text-left" id="sql-result-table">
+                <thead id="sql-result-thead" class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px] sticky top-0">
+                  <tr><th class="p-3 text-slate-400">Results will appear here</th></tr>
+                </thead>
+                <tbody id="sql-result-tbody" class="divide-y divide-slate-100 font-mono text-[11px]"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <!-- ==============================================================
-             SEE THE DATABASE: 5. CHANGE HISTORY (Audit Log)
+             PAGE: CHANGE HISTORY (SEE THE DATABASE)
              ============================================================== -->
-        <div id="tab-db-audit-log" class="tab-pane hidden space-y-5">
-          
+        <div id="tab-db-change-history" class="tab-pane hidden space-y-5">
           <div class="page-header-container">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <h1 class="text-xl font-extrabold text-slate-900">Change History: timeline of database changes</h1>
-                <div class="what-is-this-box">
-                  <strong>What is this page?</strong> A permanent record of every addition, update, or deletion saved by automatic triggers. Shows who made the change and what values were updated.
-                </div>
+            <div>
+              <h1 class="text-xl font-extrabold text-slate-900">Change History</h1>
+              <div class="what-is-this-box">
+                <strong>What is this page?</strong> Plain-English log of every insert, update, and delete that has run in the database.
               </div>
             </div>
             <div class="header-chips-row">
-              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database table used: audit_log</span>
-              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
-                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
-              </button>
+              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Database table used: change_log</span>
             </div>
           </div>
 
-          <!-- Timeline Filter -->
-          <div class="flex items-center justify-between flex-wrap gap-3">
-            <div class="flex items-center space-x-2">
-              <label class="text-xs font-bold text-slate-700">Filter by Table:</label>
-              <select id="audit-table-filter" onchange="loadAuditLogData(this.value)" class="px-3 py-1.5 text-xs font-semibold border border-slate-300 rounded-lg bg-white text-slate-800">
-                <option value="">All Tables</option>
-                <option value="batches">batches</option>
-                <option value="plots">plots</option>
-                <option value="due_diligence_statements">due_diligence_statements</option>
-              </select>
-            </div>
-            <button onclick="loadAuditLogData()" class="px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg flex items-center">
-              <i data-lucide="refresh-cw" class="w-3 h-3 mr-1"></i> Refresh History
-            </button>
-          </div>
-
-          <!-- Timeline of Sentences & Old -> New Diff View -->
-          <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-4">
-            <div id="audit-timeline-container" class="space-y-3">
-              <!-- Rendered via JS -->
+          <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px]">
+                  <tr>
+                    <th class="p-3 w-16">ID</th>
+                    <th class="p-3">Table</th>
+                    <th class="p-3">Action</th>
+                    <th class="p-3">Plain-English Summary</th>
+                    <th class="p-3">Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody id="change-history-tbody" class="divide-y divide-slate-100">
+                  <tr><td colspan="5" class="p-4 text-center text-slate-400">Loading change history...</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
-
-        </div>
-
-        <!-- ==============================================================
-             SEE THE DATABASE: 6. WHY OUR DESIGN IS GOOD (3NF)
-             ============================================================== -->
-        <div id="tab-db-normalization" class="tab-pane hidden space-y-5">
-          
-          <div class="page-header-container">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <h1 class="text-xl font-extrabold text-slate-900">Why Our Design Is Good: 3rd Normal Form (3NF)</h1>
-                <div class="what-is-this-box">
-                  <strong>What is this page?</strong> Why we separate data into 18 tables instead of one big spreadsheet. It eliminates duplicate errors and keeps our data clean.
-                </div>
-              </div>
-            </div>
-            <div class="header-chips-row">
-              <span class="db-chip"><i data-lucide="database" class="w-3 h-3 mr-1 text-emerald-600"></i> Relational Architecture: 3rd Normal Form (3NF)</span>
-              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
-                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
-              </button>
-            </div>
-          </div>
-
-          <!-- BEFORE & AFTER EXAMPLE -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Bad Example -->
-            <div class="p-5 rounded-xl bg-rose-50/70 border border-rose-200 space-y-2">
-              <div class="flex items-center space-x-2 text-rose-800 font-bold text-xs uppercase">
-                <i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i>
-                <span>Before: One Big Spreadsheet (Bad Design)</span>
-              </div>
-              <p class="text-xs text-rose-900 leading-relaxed">
-                If the company name, farmer address, and country were repeated in every batch row, someone updating the address in one row would leave the other rows outdated. That creates <strong>Update Anomalies</strong> and corrupts legal records.
-              </p>
-            </div>
-
-            <!-- Good Example -->
-            <div class="p-5 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-2">
-              <div class="flex items-center space-x-2 text-emerald-800 font-bold text-xs uppercase">
-                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
-                <span>After: 3rd Normal Form (Our Design)</span>
-              </div>
-              <p class="text-xs text-emerald-900 leading-relaxed">
-                Each company is saved exactly once in the <code>organizations</code> table. Batches simply reference the company ID. If an address changes, updating one single row updates it everywhere automatically with zero duplicates.
-              </p>
-            </div>
-          </div>
-
-          <!-- ONE CARD PER TABLE: WHY IT IS SEPARATE -->
-          <div class="space-y-3">
-            <h3 class="font-bold text-sm text-slate-900">Why each table is separate:</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              
-              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-                <div class="flex items-center justify-between">
-                  <span class="font-mono text-xs font-bold text-emerald-700">organizations</span>
-                  <span class="text-[10px] text-slate-400">Master Data</span>
-                </div>
-                <div class="font-bold text-xs text-slate-900">Why it is separate:</div>
-                <p class="text-xs text-slate-600">Companies have tax numbers (EORI) and addresses. Storing them separately means farmer details are never duplicated across hundreds of harvest batches.</p>
-              </div>
-
-              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-                <div class="flex items-center justify-between">
-                  <span class="font-mono text-xs font-bold text-emerald-700">plots</span>
-                  <span class="text-[10px] text-slate-400">Land Parcels</span>
-                </div>
-                <div class="font-bold text-xs text-slate-900">Why it is separate:</div>
-                <p class="text-xs text-slate-600">A piece of land exists permanently regardless of what crops grow each year. Storing plots separately ensures GPS coordinates never get accidentally modified.</p>
-              </div>
-
-              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-                <div class="flex items-center justify-between">
-                  <span class="font-mono text-xs font-bold text-emerald-700">plot_polygon_points</span>
-                  <span class="text-[10px] text-slate-400">Geospatial</span>
-                </div>
-                <div class="font-bold text-xs text-slate-900">Why it is separate:</div>
-                <p class="text-xs text-slate-600">A boundary polygon has 3 to 100+ GPS vertices (1:N relationship). Storing vertices in a child table satisfies 1NF by eliminating repeating groups.</p>
-              </div>
-
-              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-                <div class="flex items-center justify-between">
-                  <span class="font-mono text-xs font-bold text-emerald-700">batches</span>
-                  <span class="text-[10px] text-slate-400">Supply Lots</span>
-                </div>
-                <div class="font-bold text-xs text-slate-900">Why it is separate:</div>
-                <p class="text-xs text-slate-600">Each batch has its own weight, harvest date, and safety status. It links to products and companies without repeating their descriptions.</p>
-              </div>
-
-              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-                <div class="flex items-center justify-between">
-                  <span class="font-mono text-xs font-bold text-emerald-700">batch_lineage</span>
-                  <span class="text-[10px] text-slate-400">Traceability</span>
-                </div>
-                <div class="font-bold text-xs text-slate-900">Why it is separate:</div>
-                <p class="text-xs text-slate-600">Batches can be blended or split (M:N relationship). A dedicated junction table enables recursive SQL queries to trace back 10 steps to the farm.</p>
-              </div>
-
-              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-                <div class="flex items-center justify-between">
-                  <span class="font-mono text-xs font-bold text-emerald-700">due_diligence_statements</span>
-                  <span class="text-[10px] text-slate-400">EU Clearance</span>
-                </div>
-                <div class="font-bold text-xs text-slate-900">Why it is separate:</div>
-                <p class="text-xs text-slate-600">One official EU report can contain 10 batches. Separating reports prevents repeating customs reference numbers on every batch row.</p>
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ==============================================================
-             HELP: WORD MEANINGS (Glossary)
-             ============================================================== -->
-        <div id="tab-word-meanings" class="tab-pane hidden space-y-5">
-          
-          <div class="page-header-container">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <div>
-                <h1 class="text-xl font-extrabold text-slate-900">Word Meanings: EUDR glossary in simple words</h1>
-                <div class="what-is-this-box">
-                  <strong>What is this page?</strong> A plain English guide to all laws, technical terms, and acronyms used in this system.
-                </div>
-              </div>
-            </div>
-            <div class="header-chips-row">
-              <span class="db-chip"><i data-lucide="book" class="w-3 h-3 mr-1 text-emerald-600"></i> Plain English Terminology Dictionary</span>
-              <button onclick="toggleUnderTheHood()" class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors flex items-center">
-                <i data-lucide="code" class="w-3.5 h-3.5 mr-1 text-emerald-600"></i> Show Database Action
-              </button>
-            </div>
-          </div>
-
-          <!-- Glossary Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-              <div class="text-xs font-bold text-emerald-700 uppercase">EUDR</div>
-              <h3 class="font-bold text-sm text-slate-900">European Union Deforestation Regulation</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">The European law (Reg. 2023/1115) that forbids selling goods produced on land cleared after 31 Dec 2020.</p>
-            </div>
-
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-              <div class="text-xs font-bold text-emerald-700 uppercase">Commodity</div>
-              <h3 class="font-bold text-sm text-slate-900">Regulated Product</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">The 7 products covered by law: cocoa, coffee, oil palm, rubber, soya, cattle, and wood.</p>
-            </div>
-
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-              <div class="text-xs font-bold text-emerald-700 uppercase">Plot</div>
-              <h3 class="font-bold text-sm text-slate-900">Farmland Parcel</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">A specific piece of land with recorded GPS coordinates where crops are grown.</p>
-            </div>
-
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-              <div class="text-xs font-bold text-emerald-700 uppercase">Polygon</div>
-              <h3 class="font-bold text-sm text-slate-900">Land Boundary</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">A series of GPS points connected like a fence. Required for all plots larger than 4 hectares.</p>
-            </div>
-
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-              <div class="text-xs font-bold text-emerald-700 uppercase">Batch</div>
-              <h3 class="font-bold text-sm text-slate-900">One Lot of Product</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">A specific quantity of product harvested, processed, or shipped together (e.g. 8,000 kg of cocoa).</p>
-            </div>
-
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-              <div class="text-xs font-bold text-emerald-700 uppercase">Traceability</div>
-              <h3 class="font-bold text-sm text-slate-900">Farm-to-Fork Journey</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">The ability to follow a product step-by-step from the store shelf back to the exact farm plot.</p>
-            </div>
-
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-              <div class="text-xs font-bold text-emerald-700 uppercase">Risk Assessment</div>
-              <h3 class="font-bold text-sm text-slate-900">Safety Check</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Evaluating country risk, satellite images, and legal papers to make sure goods are clean.</p>
-            </div>
-
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-              <div class="text-xs font-bold text-emerald-700 uppercase">Mitigation</div>
-              <h3 class="font-bold text-sm text-slate-900">Corrective Action</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Extra steps taken if risk is found, like doing a satellite check or requesting official tax papers.</p>
-            </div>
-
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-              <div class="text-xs font-bold text-emerald-700 uppercase">DDS / EU Report</div>
-              <h3 class="font-bold text-sm text-slate-900">Due Diligence Statement</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">The official compliance statement submitted to the EU customs portal before selling products in the EU.</p>
-            </div>
-
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-              <div class="text-xs font-bold text-emerald-700 uppercase">EORI</div>
-              <h3 class="font-bold text-sm text-slate-900">EU Tax / Customs Number</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">A unique European registration number used by customs to identify trading companies.</p>
-            </div>
-
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-              <div class="text-xs font-bold text-emerald-700 uppercase">Operator</div>
-              <h3 class="font-bold text-sm text-slate-900">EU Importer</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">The company that brings the goods into the EU market and carries legal responsibility.</p>
-            </div>
-
-            <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-1.5">
-              <div class="text-xs font-bold text-emerald-700 uppercase">Cut-Off Date</div>
-              <h3 class="font-bold text-sm text-slate-900">31 December 2020</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">The legal cut-off line. Land cleared of forest after this date is illegal to import from.</p>
-            </div>
-
-          </div>
-
         </div>
 
       </main>
+
     </div>
+
   </div>
 
   <!-- ====================================================================
-       INTERACTIVE 7-STEP DEMO TOUR MODAL & OVERLAY
+       SLIDE-OVER "DATABASE CHANGES" DRAWER (MOST IMPORTANT FEATURE)
        ==================================================================== -->
-  <div id="tour-overlay">
-    <div class="tour-card" id="tour-card-body">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <span class="text-xs font-bold uppercase tracking-wider text-emerald-600" id="tour-step-counter">Step 1 of 7</span>
-        <button onclick="closeDemoTour()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
-      </div>
-      <div class="py-4 space-y-2">
-        <h3 class="font-extrabold text-base text-slate-900" id="tour-title">This is the story: from farm to EU.</h3>
-        <p class="text-xs text-slate-600 leading-relaxed" id="tour-explanation">
-          EU law says products like cocoa and coffee must not come from deforested land. TraceChain tracks every batch back to the exact farm.
-        </p>
-      </div>
-      <div class="flex items-center justify-between pt-3 border-t border-slate-100">
-        <button onclick="prevTourStep()" id="tour-prev-btn" class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Previous</button>
-        <button onclick="nextTourStep()" id="tour-next-btn" class="px-4 py-1.5 text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-900 rounded-lg shadow-sm">Next Step &rarr;</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ====================================================================
-       "EXPLAIN THIS TABLE" MODAL (FOR TABLE DIAGRAM)
-       ==================================================================== -->
-  <div id="modal-explain-table" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden p-5 space-y-3">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-        <div class="flex items-center space-x-2">
-          <i data-lucide="table" class="w-4 h-4 text-emerald-600"></i>
-          <h3 class="font-bold text-sm text-slate-900" id="explain-table-name">Table Explanation</h3>
-        </div>
-        <button onclick="closeModal('modal-explain-table')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
-      </div>
-      <p class="text-xs text-slate-700 leading-relaxed" id="explain-table-text"></p>
-      <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1">
-        <span class="text-[10px] font-bold uppercase text-slate-400 block">Example Record</span>
-        <pre class="font-mono text-[11px] text-slate-800 overflow-x-auto whitespace-pre-wrap" id="explain-table-sample"></pre>
-      </div>
-      <div class="text-right pt-1">
-        <button onclick="closeModal('modal-explain-table')" class="px-4 py-1.5 text-xs font-bold bg-forest-900 text-white rounded-lg">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ====================================================================
-       SLIDE-OVER "UNDER THE HOOD (SQL)" ACTIVITY DRAWER
-       ==================================================================== -->
-  <div id="under-the-hood-drawer" class="fixed inset-y-0 right-0 w-96 bg-slate-900 text-slate-200 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col border-l border-slate-800">
+  <div id="db-action-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[480px] bg-slate-900 text-slate-200 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col border-l border-slate-800">
     <div class="h-14 px-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
       <div class="flex items-center space-x-2">
-        <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i>
-        <h3 class="font-bold text-sm text-white">Database Action Log</h3>
+        <i data-lucide="database" class="w-4 h-4 text-emerald-400"></i>
+        <h3 class="font-bold text-sm text-white">Database Changes</h3>
       </div>
-      <button onclick="toggleUnderTheHood()" class="text-slate-400 hover:text-white p-1">
+      <button onclick="toggleDatabaseActionDrawer()" class="text-slate-400 hover:text-white p-1">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
     </div>
-    <div class="p-3 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400">
-      <span>Executed queries with runtime</span>
-      <button onclick="clearTelemetryLog()" class="text-[11px] text-slate-400 hover:text-slate-200">Clear</button>
-    </div>
-    <div id="telemetry-log-container" class="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-[11px]">
-      <div class="text-center py-12 text-slate-500 font-sans text-xs">
-        <p>No queries executed yet in this session.</p>
+
+    <div class="flex-1 overflow-y-auto p-5 space-y-4 text-xs font-mono">
+      
+      <!-- 1. Plain sentence -->
+      <div class="p-3 rounded-lg bg-emerald-950/80 border border-emerald-700/60 text-emerald-200 font-sans">
+        <div class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider mb-1">Action Summary</div>
+        <div id="drawer-summary" class="text-xs font-medium">Ready. Perform an action (Add, Send, Update, Delete) to inspect the live database impact.</div>
       </div>
+
+      <!-- 2. Table changed & row diff -->
+      <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Table Changed</span>
+          <span id="drawer-table-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-300">-</span>
+        </div>
+        <div id="drawer-row-diff" class="p-2.5 bg-slate-950 rounded text-[11px] text-emerald-300 overflow-x-auto whitespace-pre-wrap">No recent change.</div>
+      </div>
+
+      <!-- 3. The SQL that ran -->
+      <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
+        <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">SQL Query Executed</div>
+        <pre id="drawer-sql" class="p-2.5 bg-slate-950 rounded text-[11px] text-amber-300 overflow-x-auto whitespace-pre-wrap font-mono">-- No query executed yet</pre>
+      </div>
+
+      <!-- 4. Which PK / FK was used -->
+      <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700">
+        <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">Primary Key &amp; Foreign Key Used</div>
+        <div id="drawer-keys" class="text-xs text-sky-300 space-y-1">
+          <div>None</div>
+        </div>
+      </div>
+
+      <!-- 5. Button to jump to Data Tables -->
+      <div>
+        <button id="drawer-jump-btn" onclick="jumpToDataTablesFromDrawer()" class="w-full py-2.5 px-4 font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all shadow flex items-center justify-center">
+          <i data-lucide="external-link" class="w-3.5 h-3.5 mr-2"></i>
+          <span>Open in Data Tables &amp; Highlight Row</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
   <!-- ====================================================================
-       COMMAND PALETTE (CTRL+K) MODAL
+       MODALS: ADD SUPPLIER, ADD FARMER, ADD BATCH, SEND MODAL, ADD WAREHOUSE, CREATE SHIPMENT
        ==================================================================== -->
-  <div id="command-palette-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-start justify-center pt-20">
-    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
-      <div class="p-3 border-b border-slate-100 flex items-center">
-        <i data-lucide="search" class="w-4 h-4 text-slate-400 mr-2"></i>
-        <input type="text" id="palette-search-input" oninput="runPaletteSearch(this.value)" placeholder="Search batches, plots, companies, or jump to tab..." class="w-full text-xs text-slate-800 focus:outline-none">
-        <kbd onclick="closeCommandPalette()" class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded cursor-pointer">ESC</kbd>
+  
+  <!-- Modal: Add Supplier -->
+  <div id="modal-add-supplier" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-bold text-sm text-slate-900">Add Supplier</h3>
+        <button onclick="closeModal('modal-add-supplier')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
-      <div id="palette-results-list" class="max-h-72 overflow-y-auto p-2 text-xs space-y-1"></div>
+      <form id="form-add-supplier" onsubmit="submitAddSupplier(event)" class="p-5 space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Supplier Name *</label>
+          <input type="text" name="name" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs" placeholder="e.g. Kerala Highlands Trading Co.">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Country</label>
+          <input type="text" name="country" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs" placeholder="e.g. India">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Phone</label>
+          <input type="text" name="phone" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs" placeholder="e.g. +91 94471 23456">
+        </div>
+        <div class="flex items-center justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('modal-add-supplier')" class="px-3 py-1.5 text-slate-600">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Save Supplier</button>
+        </div>
+      </form>
     </div>
   </div>
 
-  <!-- ====================================================================
-       MODALS: ADD PLOT (3-STEP), CREATE BATCH, RUN SAFETY CHECK, GENERATE DDS, ADD MASTER
-       ==================================================================== -->
-  <!-- Modal 1: Add Plot (3 Simple Steps) -->
-  <div id="modal-add-plot" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
+  <!-- Modal: Add Farmer -->
+  <div id="modal-add-farmer" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-bold text-sm text-slate-900">Add Farmer</h3>
+        <button onclick="closeModal('modal-add-farmer')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <form id="form-add-farmer" onsubmit="submitAddFarmer(event)" class="p-5 space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Which Supplier? * (Foreign Key)</label>
+          <select name="supplier_id" id="farmer-modal-supplier-select" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs"></select>
+          <span class="text-[10px] text-slate-400">A farmer can be added under ANY registered supplier.</span>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Farmer Name *</label>
+          <input type="text" name="name" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs" placeholder="e.g. Ravi Varma">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Village</label>
+          <input type="text" name="village" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs" placeholder="e.g. Wayanad">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Deforestation-free Land? *</label>
+          <select name="deforestation_free" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs">
+            <option value="1">Yes (Land was NOT cleared after 31 Dec 2020)</option>
+            <option value="0">No (Deforested / cleared after cut-off date)</option>
+          </select>
+        </div>
+        <div class="flex items-center justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('modal-add-farmer')" class="px-3 py-1.5 text-slate-600">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Save Farmer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Batch -->
+  <div id="modal-add-batch" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
       <div class="p-4 border-b border-slate-100 flex items-center justify-between">
         <div>
-          <h3 class="font-bold text-sm text-slate-900">Add Farm Plot (3 Simple Steps)</h3>
-          <p class="text-xs text-slate-500">Register new farmland with GPS coordinates</p>
+          <h3 class="font-bold text-sm text-slate-900">Add Harvest Batch</h3>
+          <p class="text-[11px] text-slate-500">Batch code is automatically generated (e.g. COF-0001)</p>
         </div>
-        <button onclick="closeModal('modal-add-plot')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+        <button onclick="closeModal('modal-add-batch')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
-      <form id="form-add-plot" onsubmit="submitAddPlot(event)" class="p-5 space-y-4 text-xs">
+      <form id="form-add-batch" onsubmit="submitAddBatch(event)" class="p-5 space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Farmer &amp; Supplier *</label>
+          <select name="farmer_id" id="batch-modal-farmer-select" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs"></select>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Product *</label>
+          <select name="product_id" id="batch-modal-product-select" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs"></select>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Quantity (kg) *</label>
+          <input type="number" step="0.1" min="0.1" name="quantity_kg" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs" placeholder="e.g. 50">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Harvest Date</label>
+          <input type="date" name="harvest_date" id="batch-modal-date-input" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs">
+        </div>
+        <div class="flex items-center justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('modal-add-batch')" class="px-3 py-1.5 text-slate-600">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Create Batch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: SEND BATCH (Warehouse or Shipment) -->
+  <div id="modal-send-batch" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-sm text-slate-900">Send Batch</h3>
+          <p class="text-[11px] text-slate-500" id="send-modal-subtitle">Transfer weight to warehouse or shipment</p>
+        </div>
+        <button onclick="closeModal('modal-send-batch')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <form id="form-send-batch" onsubmit="submitSendBatch(event)" class="p-5 space-y-3 text-xs">
+        <input type="hidden" name="batch_id" id="send-form-batch-id">
         
-        <!-- Step 1: Where? -->
-        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-          <span class="font-bold text-emerald-800 text-xs block">Step 1: Where is the farm?</span>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-0.5">Plot Name *</label>
-            <input type="text" name="region_name" required placeholder="e.g. Ashanti Bekwai Sector 5" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
+        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg space-y-1">
+          <div class="flex justify-between">
+            <span class="text-slate-600">Batch Code:</span>
+            <span class="font-bold font-mono text-emerald-900" id="send-info-code">-</span>
           </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block font-semibold text-slate-700 mb-0.5">Country *</label>
-              <select name="country_id" id="plot-form-country-select" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></select>
-            </div>
-            <div>
-              <label class="block font-semibold text-slate-700 mb-0.5">Owner Company / Farmer *</label>
-              <select name="owner_org_id" id="plot-form-owner-select" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></select>
-            </div>
+          <div class="flex justify-between">
+            <span class="text-slate-600">Total Harvest kg:</span>
+            <span class="font-semibold" id="send-info-total">-</span>
+          </div>
+          <div class="flex justify-between text-sm pt-1 border-t border-emerald-200">
+            <span class="font-bold text-forest-900">Remaining kg with Supplier:</span>
+            <span class="font-black text-forest-900" id="send-info-remaining">-</span>
           </div>
         </div>
 
-        <!-- Step 2: What is grown? -->
-        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-          <span class="font-bold text-emerald-800 text-xs block">Step 2: What is grown?</span>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block font-semibold text-slate-700 mb-0.5">Crop *</label>
-              <select name="commodity_id" id="plot-form-commodity-select" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></select>
-            </div>
-            <div>
-              <label class="block font-semibold text-slate-700 mb-0.5">Size (Hectares) *</label>
-              <input type="number" step="0.01" name="area_hectares" id="plot-form-area" oninput="autoCheckGeoType(this.value)" required placeholder="3.5" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
-            </div>
-          </div>
-          <!-- Live rule message -->
-          <div id="plot-form-geo-msg" class="text-[11px] font-semibold text-slate-600 p-2 bg-white rounded border border-slate-200">
-            This plot is under 4 hectares, so one GPS point is enough.
-          </div>
-          <div class="hidden">
-            <select name="geo_type" id="plot-form-geo-type">
-              <option value="POINT">POINT</option>
-              <option value="POLYGON">POLYGON</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Step 3: Proof (Coordinates & Forest Status) -->
-        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-          <span class="font-bold text-emerald-800 text-xs block">Step 3: Exact GPS Location</span>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block font-semibold text-slate-700 mb-0.5">Latitude (6 decimals) *</label>
-              <input type="number" step="0.000001" name="latitude" required placeholder="6.223401" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
-            </div>
-            <div>
-              <label class="block font-semibold text-slate-700 mb-0.5">Longitude (6 decimals) *</label>
-              <input type="number" step="0.000001" name="longitude" required placeholder="-1.892345" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
-            </div>
-          </div>
-          <div id="plot-polygon-input-group" class="hidden">
-            <label class="block font-semibold text-slate-700 mb-0.5">Polygon Points (at least 3 GPS points)</label>
-            <textarea name="polygon_coords_raw" rows="2" placeholder="[[6.310567, -2.145890], [6.314200, -2.141200], [6.308900, -2.138400], [6.310567, -2.145890]]" class="w-full font-mono text-[11px] px-2 py-1 border border-slate-300 rounded"></textarea>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-end space-x-2 pt-2">
-          <button type="button" onclick="closeModal('modal-add-plot')" class="px-3 py-1.5 text-slate-600">Cancel</button>
-          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Save Plot to Database</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal 2: Create Batch -->
-  <div id="modal-create-batch" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
-      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-sm text-slate-900">Create Product Batch</h3>
-        <button onclick="closeModal('modal-create-batch')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
-      </div>
-      <form id="form-create-batch" onsubmit="submitCreateBatch(event)" class="p-5 space-y-4 text-xs">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Batch Code (e.g. GH-COC-RAW-2026-99)</label>
-          <input type="text" name="batch_code" placeholder="Leave blank to auto-generate code" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg uppercase">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Product *</label>
-            <select name="commodity_id" id="batch-form-commodity-select" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Weight in kg *</label>
-            <input type="number" step="0.01" name="quantity_kg" required placeholder="5000" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Company *</label>
-            <select name="created_by_org_id" id="batch-form-org-select" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg"></select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Batch Type *</label>
-            <select name="batch_type" id="batch-form-type-select" onchange="toggleBatchSourceInputs(this.value)" required class="w-full px-3 py-1.5 border border-slate-300 rounded-lg">
-              <option value="RAW">RAW (Direct from Farm Plots)</option>
-              <option value="PROCESSED">PROCESSED (Derived from Parent Batch)</option>
-              <option value="MIXED">MIXED (Aggregated Multiple Batches)</option>
-            </select>
+          <label class="block font-semibold text-slate-700 mb-1">Destination Type *</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center p-2.5 border rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100">
+              <input type="radio" name="destination_type" value="warehouse" checked onchange="updateSendDestinationOptions()" class="mr-2">
+              <span class="font-semibold text-slate-800">Warehouse</span>
+            </label>
+            <label class="flex items-center p-2.5 border rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100">
+              <input type="radio" name="destination_type" value="shipment" onchange="updateSendDestinationOptions()" class="mr-2">
+              <span class="font-semibold text-slate-800">Shipment</span>
+            </label>
           </div>
         </div>
 
-        <div id="batch-source-plots-group" class="p-3 bg-slate-50 rounded-lg border border-slate-200">
-          <label class="block font-semibold text-slate-700 mb-1">Source Farm Plots</label>
-          <select id="batch-source-plots-select" multiple class="w-full h-24 text-[11px] p-1 border border-slate-300 rounded"></select>
-          <span class="text-[10px] text-slate-500">Hold Ctrl to select multiple origin plots.</span>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1" id="send-destination-label">Select Destination *</label>
+          <select name="destination_id" id="send-destination-select" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs"></select>
         </div>
 
-        <div id="batch-parent-lineage-group" class="hidden p-3 bg-slate-50 rounded-lg border border-slate-200">
-          <label class="block font-semibold text-slate-700 mb-1">Link Parent Batches</label>
-          <select id="batch-parent-lineage-select" multiple class="w-full h-24 text-[11px] p-1 border border-slate-300 rounded"></select>
-          <span class="text-[10px] text-slate-500">Hold Ctrl to select parent batches.</span>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">How many kg to send? * (max = remaining)</label>
+          <input type="number" step="0.1" min="0.1" name="quantity_kg" id="send-quantity-input" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs" placeholder="e.g. 30">
+          <span class="text-[10px] text-slate-500">Partial sends work! e.g. 50 kg &rarr; send 30 kg, then 20 kg.</span>
         </div>
 
         <div class="flex items-center justify-end space-x-2 pt-2">
-          <button type="button" onclick="closeModal('modal-create-batch')" class="px-3 py-1.5 text-slate-600">Cancel</button>
-          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Save Batch</button>
+          <button type="button" onclick="closeModal('modal-send-batch')" class="px-3 py-1.5 text-slate-600">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Confirm Movement</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal 3: Run Safety Check (Risk Assessment) -->
-  <div id="modal-risk-assessment" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <!-- Modal: Add Warehouse -->
+  <div id="modal-add-warehouse" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
       <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-sm text-slate-900">Run Batch Safety Check</h3>
-        <button onclick="closeModal('modal-risk-assessment')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+        <h3 class="font-bold text-sm text-slate-900">Add Warehouse</h3>
+        <button onclick="closeModal('modal-add-warehouse')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
-      <form id="form-risk-assessment" onsubmit="submitRiskAssessment(event)" class="p-5 space-y-4 text-xs">
+      <form id="form-add-warehouse" onsubmit="submitAddWarehouse(event)" class="p-5 space-y-3 text-xs">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Select Batch to Check *</label>
-          <select name="batch_id" id="risk-form-batch-select" required class="w-full px-3 py-2 border border-slate-300 rounded-lg"></select>
+          <label class="block font-semibold text-slate-700 mb-1">Warehouse Name *</label>
+          <input type="text" name="name" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs" placeholder="e.g. Antwerp Port Logistics">
         </div>
-        <div class="p-3 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200 text-xs">
-          <div class="font-bold mb-1">How the score works:</div>
-          <p class="leading-relaxed">Country risk (25%) + Farm forest status (30%) + Land legal papers (25%) + Supplier check (20%). Score under 20 is Safe; above 20 Needs Action.</p>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">City</label>
+          <input type="text" name="city" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs" placeholder="e.g. Antwerp">
         </div>
         <div class="flex items-center justify-end space-x-2 pt-2">
-          <button type="button" onclick="closeModal('modal-risk-assessment')" class="px-3 py-1.5 text-slate-600">Cancel</button>
-          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Run Check &amp; Save</button>
+          <button type="button" onclick="closeModal('modal-add-warehouse')" class="px-3 py-1.5 text-slate-600">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Save Warehouse</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal 4: Generate EU Report (DDS) -->
-  <div id="modal-generate-dds" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <!-- Modal: Create Shipment -->
+  <div id="modal-add-shipment" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
       <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-sm text-slate-900">Create EU Compliance Report</h3>
-        <button onclick="closeModal('modal-generate-dds')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
-      </div>
-      <form id="form-generate-dds" onsubmit="submitGenerateDDS(event)" class="p-5 space-y-4 text-xs">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">EU Importer (Placing Company) *</label>
-          <select name="operator_org_id" id="dds-form-operator-select" required class="w-full px-3 py-2 border border-slate-300 rounded-lg"></select>
+          <h3 class="font-bold text-sm text-slate-900">Create Shipment</h3>
+          <p class="text-[11px] text-slate-500">Shipment code is auto-made (e.g. SHP-0003)</p>
+        </div>
+        <button onclick="closeModal('modal-add-shipment')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <form id="form-add-shipment" onsubmit="submitAddShipment(event)" class="p-5 space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Destination *</label>
+          <input type="text" name="destination" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs" placeholder="e.g. Rotterdam, Netherlands">
         </div>
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Select Approved Batches to Include *</label>
-          <select name="batch_ids" id="dds-form-batches-select" multiple required class="w-full h-28 text-[11px] p-2 border border-slate-300 rounded"></select>
-          <span class="text-[10px] text-slate-500">Only batches that passed Safety Check are shown.</span>
+          <label class="block font-semibold text-slate-700 mb-1">Initial Status</label>
+          <select name="status" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs">
+            <option value="Preparing">Preparing</option>
+            <option value="In Transit">In Transit</option>
+            <option value="Delivered">Delivered</option>
+          </select>
         </div>
         <div class="flex items-center justify-end space-x-2 pt-2">
-          <button type="button" onclick="closeModal('modal-generate-dds')" class="px-3 py-1.5 text-slate-600">Cancel</button>
-          <button type="submit" class="px-4 py-1.5 font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-500">Submit EU Report</button>
+          <button type="button" onclick="closeModal('modal-add-shipment')" class="px-3 py-1.5 text-slate-600">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Create Shipment</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal 5: Add Master Record -->
-  <div id="modal-add-master-record" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
-      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-sm text-slate-900" id="modal-master-title">Add Company</h3>
-        <button onclick="closeModal('modal-add-master-record')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
-      </div>
-      <form id="form-add-master-record" onsubmit="submitAddMasterRecord(event)" class="p-5 space-y-3 text-xs">
-        <div id="master-dynamic-inputs" class="space-y-3"></div>
-        <div class="flex items-center justify-end space-x-2 pt-2">
-          <button type="button" onclick="closeModal('modal-add-master-record')" class="px-3 py-1.5 text-slate-600">Cancel</button>
-          <button type="submit" class="px-4 py-1.5 font-bold bg-forest-900 text-white rounded-lg hover:bg-forest-800">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ====================================================================
-       PRINTABLE TRACE CERTIFICATE (PRINT VIEW ONLY)
-       ==================================================================== -->
-  <div id="printable-certificate" class="hidden print-only p-8 max-w-4xl mx-auto bg-white text-slate-900">
-    <div class="border-4 border-forest-900 p-8 rounded-2xl">
-      <div class="flex justify-between items-center pb-6 border-b-2 border-forest-900">
-        <div>
-          <h1 class="text-2xl font-black text-forest-900">EUDR TRACEABILITY CERTIFICATE</h1>
-          <p class="text-xs text-slate-600 mt-1">Pursuant to European Union Regulation (EU) 2023/1115 &amp; (EU) 2025/2650</p>
-        </div>
-        <div class="text-right font-mono text-xs">
-          <div class="font-bold text-sm" id="cert-batch-code">NL-CHOC-2026-0044</div>
-          <div class="text-emerald-700 font-bold">STATUS: APPROVED</div>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-6 my-6 text-xs">
-        <div>
-          <div class="font-bold uppercase text-slate-500 mb-1">Product Details</div>
-          <div><strong>Product:</strong> <span id="cert-commodity">Chocolate Confectionery</span></div>
-          <div><strong>Weight:</strong> <span id="cert-qty">15,000 kg</span></div>
-          <div><strong>Origin:</strong> Ashanti Region, Ghana</div>
-        </div>
-        <div>
-          <div class="font-bold uppercase text-slate-500 mb-1">EU Report &amp; Company</div>
-          <div><strong>EU Report:</strong> <span id="cert-dds-ref">26EUDDS88491A</span></div>
-          <div><strong>EU Importer:</strong> Dutch Cocoa Trading BV (EORI: NL823940192B01)</div>
-          <div><strong>Cut-off Date:</strong> 31 Dec 2020 (Forest Intact)</div>
-        </div>
-      </div>
-      <div class="border-t border-slate-200 pt-4">
-        <h3 class="text-xs font-bold uppercase text-slate-500 mb-2">Verified Geolocation of Origin Farm Plots</h3>
-        <div id="cert-plots-table" class="font-mono text-[11px] space-y-1"></div>
-      </div>
-      <div class="mt-8 pt-4 border-t border-slate-300 flex justify-between items-end text-[10px] text-slate-500">
-        <div>Generated via SQLite 3NF Database &bull; EUDR TraceChain</div>
-        <div class="text-right">Digital Hash: <span class="font-mono">SHA256-EUDR-88491-VERIFIED</span></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Application Script -->
+  <!-- Custom Scripts -->
   <script src="/static/js/app.js"></script>
 </body>
 </html>

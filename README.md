@@ -1,151 +1,154 @@
-# EUDR TraceChain: Enterprise Supply Chain Traceability DBMS
-**Regulation (EU) 2023/1115 as amended by (EU) 2025/2650**
-*A 3rd Normal Form (3NF) Relational Database Architecture & Compliance Platform*
+# Simple Supply Chain Traceability DBMS
+
+A college-level Database Management System (DBMS) demonstrating relational architecture, 3NF normalization, foreign key integrity, business rule checks, and end-to-end supply chain traceability.
 
 ---
 
-## 1. Project Overview
-**EUDR TraceChain** is an enterprise-grade database management system and full-stack compliance platform built to enforce the requirements of the European Union Deforestation Regulation (EUDR). 
+## The One Idea
 
-The platform models multi-tier global supply chains—from smallholder farm plots across Ghana, Brazil, Indonesia, Ivory Coast, and India to European placing operators—demonstrating rigorous relational design, recursive lineage resolution (Forward and Backward Common Table Expressions), geolocation polygon enforcement, and trigger-driven audit logging.
+> **"Follow a product from the farmer to the shipment. Every step is saved in connected tables, and we trace it using Primary Keys and Foreign Keys."**
 
----
-
-## 2. EUDR Regulatory Domain Model
-- **7 Regulated Commodities**: Cattle, Cocoa, Coffee, Oil Palm, Rubber, Soya, Wood (and derived products mapped by CN/HS tariff codes).
-- **Cut-off Baseline Date**: **31 December 2020**. Any agricultural commodity produced on land deforested or degraded after this timestamp is prohibited from EU entry.
-- **Geolocation Mandate (Article 9)**: 
-  - Latitude and longitude with 6 decimal places.
-  - Parcels &le; 4.0 hectares: Single point coordinate.
-  - Parcels &gt; 4.0 hectares: Strict multi-point polygon boundary coordinates.
-- **3-Step Due Diligence Framework**:
-  1. *Information Collection*: HS codes, quantities, exact parcel coordinates, legality documents.
-  2. *Risk Assessment*: Composite scoring across country benchmarks (Art. 29), satellite deforestation alerts, supplier tenure, and document verification.
-  3. *Risk Mitigation & DDS Generation*: Audits, satellite re-verification, and official Due Diligence Statement (DDS) submission to EU Customs.
-- **Anti-Mixing Safeguard**: Mixing compliant batches with unknown or non-compliant origins is blocked at the database trigger level.
+```
+Supplier (PK) ──> Farmer (FK -> Supplier) ──> Batch (FK -> Farmer, Product) ──> Movements (FK -> Warehouse / Shipment)
+```
 
 ---
 
-## 3. Database Schema Design (3NF & Integrity Rules)
+## Database Architecture (3NF & Foreign Key Integrity)
+
+The database consists of **6 core tables + 1 change log table**, created with `PRAGMA foreign_keys = ON` and indexes on every foreign key.
+
+### Entity Relationship (ER) Diagram
 
 ```mermaid
 erDiagram
-    countries ||--o{ organizations : "country_id"
-    countries ||--o{ plots : "country_id"
-    commodities ||--o{ commodities : "parent_commodity_id"
-    commodities ||--o{ plots : "commodity_id"
-    commodities ||--o{ batches : "commodity_id"
-    organizations ||--o{ users : "org_id"
-    organizations ||--o{ plots : "owner_org_id"
-    organizations ||--o{ batches : "created_by_org_id"
-    organizations ||--o{ legality_documents : "org_id"
-    organizations ||--o{ transactions : "from_org_id / to_org_id"
-    organizations ||--o{ due_diligence_statements : "operator_org_id"
-    plots ||--o{ plot_polygon_points : "plot_id"
-    plots ||--o{ plot_production_records : "plot_id"
-    plots ||--o{ legality_documents : "plot_id"
-    plots ||--o{ batch_plot_sources : "plot_id"
-    batches ||--o{ batch_plot_sources : "batch_id"
-    batches ||--o{ batch_lineage : "parent_batch_id / child_batch_id"
-    batches ||--o{ transactions : "batch_id"
-    batches ||--o{ risk_assessments : "batch_id"
-    batches ||--o{ dds_batches : "batch_id"
-    transactions ||--|| shipments : "txn_id"
-    risk_assessments ||--o{ mitigation_actions : "assessment_id"
-    due_diligence_statements ||--o{ dds_batches : "dds_id"
+    suppliers ||--o{ farmers : "1 : N (ON DELETE RESTRICT)"
+    farmers ||--o{ batches : "1 : N (ON DELETE RESTRICT)"
+    products ||--o{ batches : "1 : N (ON DELETE RESTRICT)"
+    batches ||--o{ movements : "1 : N (batch_id)"
+    warehouses ||--o{ movements : "1 : N (warehouse_id NULLABLE)"
+    shipments ||--o{ movements : "1 : N (shipment_id NULLABLE)"
+
+    suppliers {
+        INTEGER supplier_id PK
+        TEXT name UK
+        TEXT country
+        TEXT phone
+    }
+    farmers {
+        INTEGER farmer_id PK
+        INTEGER supplier_id FK
+        TEXT name
+        TEXT village
+        INTEGER deforestation_free "CHECK (0,1)"
+    }
+    products {
+        INTEGER product_id PK
+        TEXT name UK
+    }
+    batches {
+        INTEGER batch_id PK
+        TEXT batch_code UK
+        INTEGER farmer_id FK
+        INTEGER product_id FK
+        REAL quantity_kg "CHECK > 0"
+        DATE harvest_date
+    }
+    warehouses {
+        INTEGER warehouse_id PK
+        TEXT name
+        TEXT city
+    }
+    shipments {
+        INTEGER shipment_id PK
+        TEXT shipment_code UK
+        TEXT destination
+        TEXT status "CHECK ('Preparing','In Transit','Delivered')"
+    }
+    movements {
+        INTEGER movement_id PK
+        INTEGER batch_id FK
+        REAL quantity_kg "CHECK > 0"
+        INTEGER warehouse_id FK
+        INTEGER shipment_id FK
+        DATE moved_date
+    }
+    change_log {
+        INTEGER log_id PK
+        TEXT table_name
+        TEXT action
+        TEXT summary
+        TEXT row_data
+        TIMESTAMP changed_at
+    }
 ```
 
-### The 18 Relational Tables
-1. `countries`: Country risk benchmark (Low / Standard / High), 2-letter ISO codes.
-2. `commodities`: 7 core commodities + derived products with CN/HS classification codes.
-3. `organizations`: Supply chain actors (Farmer, Cooperative, Processor, Exporter, Importer-Operator) with EORI numbers and SME flags.
-4. `users`: System users and auditor profiles with role-based access.
-5. `plots`: Land parcel geolocations, owner linkage, area (ha), and POINT/POLYGON geometry flags.
-6. `plot_polygon_points`: Sequential polygon vertex coordinate pairs for parcels > 4.0 ha.
-7. `plot_production_records`: Harvest timestamps, deforestation-free flags, satellite verification records.
-8. `legality_documents`: Land titles, environmental permits, labour compliance, and harvest licenses.
-9. `batches`: Commodity lots with quantities, types (RAW, PROCESSED, MIXED), and compliance statuses.
-10. `batch_plot_sources`: Many-to-many junction linking raw batches directly to farm plots.
-11. `batch_lineage`: Recursive self-referencing junction modeling multi-tier processing and blending.
-12. `transactions`: Chain of custody handoffs between distinct organizations.
-13. `shipments`: International transport logistics and entry port tracking.
-14. `risk_assessments`: Composite 4-factor risk scoring engine.
-15. `mitigation_actions`: Corrective audits and satellite inspections for non-negligible risk.
-16. `due_diligence_statements`: Official EU DDS filing records with unique reference codes.
-17. `dds_batches`: Many-to-many junction linking statements to compliant product batches.
-18. `audit_log`: Immutable, trigger-driven transaction log recording every INSERT, UPDATE, and DELETE.
+### Views
+
+1. **`v_batch_balance`**: Calculates `total_kg`, `sent_kg`, and `remaining_kg` (kg still held with the supplier) by subtracting total moved kg from batch harvest kg.
+2. **`v_trace`**: Full multi-table `JOIN` linking `movements` $\rightarrow$ `batches` $\rightarrow$ `products` $\rightarrow$ `farmers` $\rightarrow$ `suppliers` $\rightarrow$ `warehouses` / `shipments`.
 
 ---
 
-## 4. How to Run the Project
+## 3-Minute Viva Demo Script
 
-### Prerequisites
-- Python 3.8+ (with pip)
-
-### Quick Start (Single Command)
-```bash
-# 1. Install dependencies
-pip install -r requirements.txt
-
-# 2. Start the application
-python app.py
-```
-
-Open your browser at **`http://localhost:5000`**.
-
-On first execution, the application automatically constructs `eudr.db` from `schema.sql` and loads the realistic international supply chain dataset from `seed.sql`.
-
----
-
-## 5. 3-Minute Demo Script for Teacher or Viva
-
-Follow this simple, step-by-step walkthrough to explain the project in under 3 minutes:
-
-| Time | What to Click | What to Say (Simple Words) |
+| Step | Action | What to Say / What Happens |
 |---|---|---|
-| **0:00 - 0:45** | **Home** &rarr; Point to the 5-step flow | *"EU law (EUDR) says products like cocoa, coffee, and palm oil must not come from land deforested after 31 Dec 2020. Our system tracks goods in 5 steps: Companies, Farm Plots, Batches, Safety Check, and EU Reports."* |
-| **0:45 - 1:15** | Click **Track a Product** in the sidebar | *"Here is our hero feature. Pick chocolate batch `NL-CHOC-2026-0044` and click 'Trace back to farms'. The database uses a recursive query to walk backwards through 5 companies all the way to 3 farm plots in Ghana with exact GPS locations."* |
-| **1:15 - 1:45** | Click **2. Farm Plots & Map** | *"On the map, green plots are safe and red plots are deforested. Plots bigger than 4 hectares automatically require a polygon boundary fence. Notice the Pelalawan plot shows 'Waiting' because its land papers are unverified."* |
-| **1:45 - 2:15** | Click **Automatic Rules** &rarr; Click **Try It** on Rule 1 | *"We don't rely only on code; the SQLite database has triggers. If I try to approve a batch from a deforested plot, the database BLOCKS it automatically with an ABORT error. It's impossible to smuggle illegal goods."* |
-| **2:15 - 2:45** | Click **Ask the Database (SQL)** &rarr; Click Question 1 | *"For the viva, we have 10 ready-made plain English questions. Click 'Which farms supplied chocolate batch?' and the database runs the recursive SQL query and explains the results in 1 second."* |
-| **2:45 - 3:00** | Click **Start Demo Tour** (yellow button) | *"Anyone can click this yellow button to see a 7-step guided tour of everything the teacher needs to evaluate."* |
+| **1** | Open **1. Suppliers** &rarr; Click **"Add Supplier"** | Enter "Coorg Specialty Traders" (India). Show the new supplier appear in the table. |
+| **2** | Open **2. Farmers** &rarr; Click **"Add Farmer"** | Select supplier "Coorg Specialty Traders" from the required dropdown. Enter farmer "Suresh Gowda" in Somwarpet. The foreign key `supplier_id` connects them. |
+| **3** | Open **3. Batches** &rarr; Click **"Add Batch"** | Pick Suresh Gowda, select "Coffee", and enter **50 kg**. Notice the batch code **`COF-0005`** is auto-generated and `remaining_kg` is 50. |
+| **4** | Click **"Send to Warehouse"** &rarr; Send **30 kg** | Partial send: Send 30 kg to Cochin Port Warehouse. Remaining drops to 20 kg. |
+| **5** | Click **"Send to Shipment"** &rarr; Send **20 kg** | Send remaining 20 kg to shipment `SHP-0001`. Remaining drops to **0 kg**. |
+| **6** | Watch the **"Database Changes" drawer** | Point out the drawer opening on every action: plain sentence, table changed diff, executed SQL, and the exact Primary/Foreign Key used. |
+| **7** | Try to send **1 more kg** | Click Send with 1 kg: A friendly block appears: *"Only 0 kg left, cannot send 1 kg"*. |
+| **8** | Try sending non-compliant batch `COF-0004` to Shipment | Dewi Lestari has `deforestation_free = 0`. System blocks: *"This farm's land was cleared after 31 Dec 2020. Not allowed to ship to the EU."* (Sending to Warehouse is allowed). |
+| **9** | Open **Track a Product** | Select `COF-0001` or `SHP-0001`. Click **"Trace Forward"** or **"Trace Back to Farm"** to see the 5-table chain. |
+| **10** | Open **Data Tables** &amp; **Ask the Database (SQL)** | Switch between **Simple View** and **Database View**. Run query 5 (*Full trace of a shipment across 5 tables*). |
 
 ---
 
-## 6. 10 Simple Viva Questions & 2-Line Answers
+## 8 Simple Viva Questions & Answers
 
-### Q1: What does EUDR require and what is the cut-off date?
-> **Answer**: EUDR requires companies to prove products did not cause deforestation. The legal cut-off date is **31 December 2020**; any land cleared after this date is illegal to import from.
+#### Q1: What is a Primary Key (PK)?
+**A:** A primary key is a column (or columns) that uniquely identifies each row in a table. It cannot contain NULL values and ensures entity integrity (e.g., `supplier_id` in `suppliers`).
 
-### Q2: Why is the database designed in 3rd Normal Form (3NF)?
-> **Answer**: We separated data into 18 tables so details like company names and country risk are stored only once. This eliminates duplicate errors and stops update anomalies.
+#### Q2: What is a Foreign Key (FK)?
+**A:** A foreign key is a column in one table that references the primary key of another table. It creates relationships between tables and enforces referential integrity (e.g., `farmers.supplier_id` references `suppliers.supplier_id`).
 
-### Q3: How do you trace a chocolate bar back to the exact farm?
-> **Answer**: We use a **Recursive CTE query** (`WITH RECURSIVE`) that follows parent-child batch links step-by-step through the `batch_lineage` table all the way to the origin farm plots.
+#### Q3: Why is this database in Third Normal Form (3NF)?
+**A:** Because all non-key columns depend directly on the primary key, the whole primary key, and nothing but the primary key (no transitive dependencies). For example, supplier details like country and phone are stored in `suppliers`, not repeated inside `farmers`.
 
-### Q4: How does the database stop someone from approving an illegal batch?
-> **Answer**: An automatic `BEFORE UPDATE` trigger on the `batches` table checks all source plots. If any plot had tree loss after 2020 or lacks verified papers, the database aborts the update.
+#### Q4: Why do we use `ON DELETE RESTRICT`?
+**A:** It prevents orphaned rows and protects critical relationships. A supplier cannot be accidentally deleted while it still has linked farmers, and a farmer cannot be deleted while batches exist.
 
-### Q5: What is the rule for farm plots bigger than 4 hectares?
-> **Answer**: Under Article 9, plots &le; 4.0 hectares can use a single GPS point, but plots &gt; 4.0 hectares **must** have a polygon boundary with at least 3 corner points.
+#### Q5: What is a Database View and why do we use `v_batch_balance`?
+**A:** A view is a saved virtual query that acts like a table without duplicating data. `v_batch_balance` calculates `remaining_kg` dynamically from `quantity_kg - SUM(movements)` so balance is always real-time and accurate.
 
-### Q6: Why did the Pelalawan plot show "Waiting" instead of "Approved"?
-> **Answer**: Even though satellite scans were clear, its land ownership document is unverified (`verified = 0`). The system requires both clear land and verified legal papers.
+#### Q6: What is a SQL `JOIN`?
+**A:** A `JOIN` combines rows from two or more tables based on a related column between them (typically PK and FK). For example, joining `farmers` and `suppliers` on `farmers.supplier_id = suppliers.supplier_id`.
 
-### Q7: Why use Raw SQL instead of an ORM?
-> **Answer**: Raw SQL lets us demonstrate relational algebra, recursive CTEs, and database-level triggers directly so teachers can see the exact database performance and query plan.
+#### Q7: Why do we add indexes on every Foreign Key?
+**A:** SQLite automatically indexes primary keys, but foreign keys are not indexed by default. Indexing foreign keys accelerates table joins and prevents full table scans when checking foreign key constraints.
 
-### Q8: How is SQL injection prevented?
-> **Answer**: Every query uses parameterized placeholders (`?`). User inputs are passed separately as parameters to SQLite and are never glued into the SQL string.
-
-### Q9: How does the Automatic Change History (Audit Log) work?
-> **Answer**: Database triggers on `batches`, `plots`, and `due_diligence_statements` automatically record every insert, update, or delete into the `audit_log` table with old and new values.
-
-### Q10: What is an EU Report (DDS)?
-> **Answer**: A Due Diligence Statement (DDS) is the official electronic document submitted to the EU customs portal before selling. It lists the approved batches and assigns an official reference number.
+#### Q8: How does the system enforce business rules (like deforestation cutoff)?
+**A:** Critical rules are validated directly at the transaction boundary before executing writes: checking that `quantity_kg <= remaining_kg` and that `deforestation_free == 1` before allowing export to shipments.
 
 ---
 
-## 7. Educational Disclaimer
-*This project was developed for academic demonstration to showcase relational database architecture, recursive SQL queries, and compliance automation under Regulation (EU) 2023/1115.*
+## Running the Application Locally
 
+1. Install requirements:
+   ```bash
+   pip install -r requirements.txt pytest
+   ```
+
+2. Run the application:
+   ```bash
+   python app.py
+   ```
+   Open your browser at **[http://localhost:5000](http://localhost:5000)**.
+
+3. Run terminal verification tests:
+   ```bash
+   pytest -v test_app.py
+   ```
