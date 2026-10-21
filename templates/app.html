@@ -669,9 +669,50 @@
             </div>
           </div>
 
-          <!-- Diagram cards container -->
+          <!-- Diagram cards — server-side rendered via Jinja2, no JS required -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="table-diagram-cards">
-            <!-- Populated dynamically with table cards -->
+            {% for name, info in schema.items() %}
+            <div id="diagram-card-{{ name }}"
+                 class="p-4 bg-slate-900 text-slate-100 rounded-xl border border-slate-800 shadow space-y-3 cursor-pointer hover:border-emerald-500 transition-all hover:shadow-lg"
+                 onclick="openTableDetailsCard('{{ name }}')">
+
+              <!-- Header row -->
+              <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                <div class="flex items-center space-x-2">
+                  <i data-lucide="table" class="w-4 h-4 text-emerald-400"></i>
+                  <span class="font-mono font-bold text-sm text-white">{{ name }}</span>
+                </div>
+                <span id="diagram-card-count-{{ name }}"
+                      class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold transition-all">
+                  {{ info.row_count }} rows
+                </span>
+              </div>
+
+              <!-- Column list -->
+              <div class="space-y-1 font-mono text-[11px]">
+                {% for col in info.columns %}
+                {% set is_pk = col.pk == 1 %}
+                {% set fk_table = info.fk_map.get(col.name) %}
+                <div class="flex items-center justify-between py-0.5">
+                  <span class="{{ 'text-amber-300 font-bold' if is_pk else ('text-sky-300' if fk_table else 'text-slate-300') }}">
+                    {{ col.name }}
+                  </span>
+                  <span class="text-[9px] text-slate-500 flex items-center gap-1">
+                    {% if is_pk %}
+                      <span class="px-1 bg-amber-400/20 text-amber-300 rounded font-bold">PK</span>
+                    {% endif %}
+                    {% if fk_table %}
+                      <span class="px-1 bg-sky-400/20 text-sky-300 rounded font-bold">FK &rarr; {{ fk_table }}</span>
+                    {% endif %}
+                    {{ col.type }}
+                  </span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% else %}
+            <div class="col-span-3 text-center py-16 text-slate-400 text-sm">No tables found in database.</div>
+            {% endfor %}
           </div>
         </div>
 

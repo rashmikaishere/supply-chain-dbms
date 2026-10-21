@@ -150,7 +150,34 @@ def home():
 
 @app.route('/app')
 def main_app():
-    return render_template('app.html')
+    """Renders the main app with schema pre-loaded for the Table Diagram page."""
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+    )
+    tables = [r['name'] for r in cursor.fetchall()]
+
+    schema_info = {}
+    for tbl in tables:
+        cursor.execute(f"PRAGMA table_info({tbl})")
+        columns = [dict(c) for c in cursor.fetchall()]
+
+        cursor.execute(f"PRAGMA foreign_key_list({tbl})")
+        fks = [dict(f) for f in cursor.fetchall()]
+        fk_map = {f['from']: f['table'] for f in fks}
+
+        cursor.execute(f"SELECT COUNT(*) FROM \"{tbl}\"")
+        row_count = cursor.fetchone()[0]
+
+        schema_info[tbl] = {
+            'columns': columns,
+            'foreign_keys': fks,
+            'fk_map': fk_map,
+            'row_count': row_count,
+        }
+
+    return render_template('app.html', schema=schema_info)
 
 
 # --------------------------------------------------------------------
