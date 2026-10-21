@@ -50,12 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Restore sidebar state if saved
   restoreSidebarAccordionStates();
 
-  // Load all initial data
-  refreshAllData();
-
-  // Default tab or hash
-  const initialTab = window.location.hash.replace('#', '') || 'dashboard';
-  switchTab(initialTab);
+  // Load all initial data, then switch to the correct initial tab
+  refreshAllData().then(() => {
+    const initialTab = window.location.hash.replace('#', '') || 'dashboard';
+    switchTab(initialTab);
+  });
 
   // Initialize Server-Sent Events live stream
   initSSEStream();
@@ -143,7 +142,7 @@ function switchTab(tabId) {
   if (tabId === 'db-data-tables') {
     loadRawTableData(state.rawTableCurrent);
   } else if (tabId === 'db-table-diagram') {
-    renderTableDiagram();
+    renderTableDiagram(); // async — will fetch schema if needed
   }
 
   // Close mobile sidebar if open
@@ -1123,9 +1122,21 @@ async function loadSchema() {
   if (ok) state.schema = data.tables || {};
 }
 
-function renderTableDiagram() {
+async function renderTableDiagram() {
   const container = document.getElementById('table-diagram-cards');
-  if (!container || !state.schema) return;
+  if (!container) return;
+
+  // If schema not yet loaded (e.g. tab opened before refreshAllData resolved), fetch it now
+  if (!state.schema || Object.keys(state.schema).length === 0) {
+    container.innerHTML = `<div class="col-span-3 flex items-center justify-center py-16 text-slate-400 text-sm"><i data-lucide="loader" class="w-5 h-5 mr-2 animate-spin"></i> Loading schema...</div>`;
+    if (window.lucide) lucide.createIcons();
+    await loadSchema();
+  }
+
+  if (!state.schema || Object.keys(state.schema).length === 0) {
+    container.innerHTML = `<div class="col-span-3 text-center py-16 text-red-400 text-sm">Could not load schema from database.</div>`;
+    return;
+  }
 
   container.innerHTML = Object.entries(state.schema).map(([name, info]) => {
     return `
