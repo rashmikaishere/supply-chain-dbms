@@ -661,7 +661,7 @@
             <div>
               <h1 class="text-xl font-extrabold text-slate-900">Table Diagram (ER Schema)</h1>
               <div class="what-is-this-box">
-                <strong>What is this page?</strong> The 7 tables and their primary key &amp; foreign key relationships. Click any table for a one-line explanation.
+                <strong>What is this page?</strong> The 7 tables and their primary key &amp; foreign key relationships. Click any table to inspect live rows, schema, and live-updating data.
               </div>
             </div>
             <div class="header-chips-row">
@@ -882,6 +882,153 @@
         </button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       SLIDE-OVER "TABLE DETAILS CARD" (560px wide, ER Schema Live Inspector)
+       ==================================================================== -->
+  <div id="table-details-backdrop" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden transition-opacity duration-300" onclick="closeTableDetailsCard()">
+    <div id="table-details-panel" class="fixed inset-y-0 right-0 w-full sm:w-[560px] bg-slate-900 text-slate-100 shadow-2xl flex flex-col border-l border-slate-800 transform translate-x-full transition-transform duration-300 ease-out z-50" onclick="event.stopPropagation()">
+      
+      <!-- Panel Header -->
+      <div class="p-4 bg-slate-950 border-b border-slate-800 flex-shrink-0">
+        <!-- Back button (shown when navigated via FK) -->
+        <div id="td-back-wrapper" class="hidden mb-2">
+          <button onclick="goBackTableDetails()" class="inline-flex items-center text-xs text-sky-400 hover:text-sky-300 font-mono transition-colors">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5 mr-1"></i>
+            <span id="td-back-label">Back</span>
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="table" class="w-5 h-5 text-emerald-400"></i>
+            <span id="td-table-name" class="font-mono font-extrabold text-lg text-white"></span>
+            
+            <!-- Live green dot badge -->
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-500/40">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5"></span>LIVE
+            </span>
+
+            <!-- Row count badge with animated count -->
+            <span id="td-row-count-badge" class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-slate-800 text-slate-300 border border-slate-700 transition-all">0 rows</span>
+          </div>
+
+          <button onclick="closeTableDetailsCard()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors" title="Close (Esc)">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- One-line explanation -->
+        <p id="td-table-desc" class="text-xs text-slate-400 mt-2 leading-snug"></p>
+      </div>
+
+      <!-- Panel Scrollable Body -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        
+        <!-- SECTION A: COLUMNS -->
+        <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5 space-y-2">
+          <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span class="flex items-center"><i data-lucide="columns" class="w-3.5 h-3.5 mr-1.5 text-emerald-400"></i> Columns</span>
+            <span id="td-col-count" class="text-[10px] text-slate-500 font-mono"></span>
+          </div>
+          <div id="td-columns-list" class="space-y-1 font-mono text-xs">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- SECTION B: ROWS IN THIS TABLE -->
+        <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5 space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Rows in this table</span>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+              <!-- Search box -->
+              <input type="text" id="td-search-input" oninput="handleTableDetailsSearch(this.value)" placeholder="Search rows..." class="px-2.5 py-1 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 w-36 sm:w-44 font-mono">
+              
+              <!-- Page size selector -->
+              <select id="td-page-size" onchange="handleTableDetailsPageSize(this.value)" class="px-2 py-1 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-300 font-mono focus:outline-none focus:border-emerald-500">
+                <option value="10">10</option>
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="all">All</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Scrollable Table -->
+          <div class="overflow-x-auto max-h-[360px] rounded-lg border border-slate-800 bg-slate-900 shadow-inner">
+            <table class="w-full text-xs text-left border-collapse" id="td-rows-table">
+              <thead id="td-rows-thead" class="sticky top-0 bg-slate-800 text-slate-300 font-mono text-[11px] uppercase tracking-wider border-b border-slate-700 z-10"></thead>
+              <tbody id="td-rows-tbody" class="divide-y divide-slate-800/80 font-mono text-[11px]"></tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div id="td-pagination-bar" class="flex items-center justify-between text-xs font-mono text-slate-400 pt-1">
+            <span id="td-page-info">Showing 0 rows</span>
+            <div class="flex items-center space-x-1" id="td-page-controls">
+              <button id="td-prev-btn" onclick="tableDetailsPrevPage()" class="px-2.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed">Prev</button>
+              <span id="td-current-page-num" class="px-2 py-0.5 text-xs text-slate-300">1</span>
+              <button id="td-next-btn" onclick="tableDetailsNextPage()" class="px-2.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed">Next</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION C: SQL USED (Collapsible) -->
+        <details class="group rounded-xl border border-slate-800 bg-slate-950/40 p-3 text-xs text-slate-300 font-mono">
+          <summary class="cursor-pointer font-bold text-slate-400 flex items-center justify-between select-none hover:text-slate-200">
+            <span class="flex items-center space-x-1.5">
+              <i data-lucide="terminal" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>SQL used</span>
+            </span>
+            <span id="td-sql-ms" class="text-[10px] text-slate-500 font-normal">0.0 ms</span>
+          </summary>
+          <div class="mt-2.5 pt-2 border-t border-slate-800/70">
+            <pre id="td-sql-text" class="text-[11px] text-emerald-400 bg-slate-950 p-2.5 rounded border border-slate-800 overflow-x-auto whitespace-pre-wrap"></pre>
+          </div>
+        </details>
+
+        <!-- LIVE TOAST AT BOTTOM OF CARD -->
+        <div id="td-card-toast" class="hidden transition-all duration-300 p-2.5 rounded-lg bg-emerald-950/90 border border-emerald-500/60 text-emerald-200 text-xs flex items-center justify-between shadow-xl">
+          <span id="td-card-toast-msg" class="flex items-center truncate">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping mr-2 flex-shrink-0"></span>
+            <span id="td-card-toast-text" class="truncate font-sans font-medium">New row added</span>
+          </span>
+          <button id="td-card-toast-btn" onclick="highlightNewestRow()" class="ml-2 px-2.5 py-0.5 rounded bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-[11px] transition-colors flex-shrink-0">Highlight</button>
+        </div>
+
+      </div>
+
+      <!-- Panel Footer -->
+      <div class="p-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between space-x-2 flex-shrink-0">
+        <button onclick="openCurrentTableInDataTables()" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors">
+          <i data-lucide="external-link" class="w-3.5 h-3.5 mr-1.5 text-emerald-400"></i> Open in Data Tables
+        </button>
+        <button onclick="downloadCurrentTableCSV()" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-300 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/60 transition-colors">
+          <i data-lucide="download" class="w-3.5 h-3.5 mr-1.5"></i> Download CSV
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- IN-PAGE CONFIRMATION MODAL (Replaces window.confirm()) -->
+  <div id="confirm-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-sm w-full p-5 shadow-2xl text-slate-200 space-y-4" onclick="event.stopPropagation()">
+      <div class="flex items-center space-x-2 text-amber-400">
+        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+        <h4 id="confirm-modal-title" class="font-bold text-sm text-white">Confirm Action</h4>
+      </div>
+      <p id="confirm-modal-msg" class="text-xs text-slate-300 leading-relaxed"></p>
+      <div class="flex items-center justify-end space-x-2 pt-2">
+        <button onclick="resolveConfirmDialog(false)" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors">Cancel</button>
+        <button id="confirm-modal-yes-btn" onclick="resolveConfirmDialog(true)" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white transition-colors">Confirm</button>
+      </div>
     </div>
   </div>
 

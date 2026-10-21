@@ -541,3 +541,99 @@ body:not(.view-database) .col-database {
     display: block !important;
   }
 }
+
+/* ====================================================================
+   TABLE DETAILS CARD & LIVE UPDATE ANIMATIONS
+   ==================================================================== */
+
+@keyframes rowSlideInGreen {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+    background-color: rgba(16, 185, 129, 0.45);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(0);
+    background-color: rgba(16, 185, 129, 0.35);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.row-new-flash {
+  animation: rowSlideInGreen 2s ease-out forwards;
+}
+
+@keyframes rowFlashAmber {
+  0% {
+    background-color: rgba(245, 158, 11, 0.5);
+  }
+  30% {
+    background-color: rgba(245, 158, 11, 0.35);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.row-update-flash {
+  animation: rowFlashAmber 2s ease-out forwards;
+}
+
+@keyframes rowDeleteRed {
+  0% {
+    background-color: rgba(239, 68, 68, 0.6);
+    opacity: 1;
+  }
+  60% {
+    background-color: rgba(239, 68, 68, 0.4);
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+  100% {
+    background-color: transparent;
+    opacity: 0;
+    transform: scale(0.95);
+    height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+  }
+}
+
+.row-delete-flash {
+  animation: rowDeleteRed 1.2s ease-out forwards;
+}
+
+@keyframes cardPulseChange {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    border-color: rgba(16, 185, 129, 0.8);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 16px 2px rgba(16, 185, 129, 0.4);
+    border-color: #10B981;
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: none;
+    border-color: #1e293b;
+  }
+}
+
+.card-pulse-change {
+  animation: cardPulseChange 1.2s ease-out forwards;
+}
+
+/* Monospace data cell */
+.td-cell {
+  padding: 6px 10px;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+

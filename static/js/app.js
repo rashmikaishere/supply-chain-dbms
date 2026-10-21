@@ -19,7 +19,16 @@ const state = {
   activeBatchForSend: null,
   lastDbAction: null,
   rawTableCurrent: 'suppliers',
-  rawTableData: []
+  rawTableData: [],
+  tableDetailsCurrentTable: null,
+  tableDetailsHistory: [],
+  tableDetailsData: null,
+  tableDetailsLastRows: [],
+  tableDetailsSearchQuery: '',
+  tableDetailsPageSize: 25,
+  tableDetailsCurrentPage: 1,
+  sseSource: null,
+  sseConnected: false
 };
 
 // ====================================================================
@@ -47,6 +56,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Default tab or hash
   const initialTab = window.location.hash.replace('#', '') || 'dashboard';
   switchTab(initialTab);
+
+  // Initialize Server-Sent Events live stream
+  initSSEStream();
+
+  // Global Esc key listener for dialogs and slide-over panel
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeTableDetailsCard();
+      resolveConfirmDialog(false);
+    }
+  });
 });
 
 // ====================================================================
@@ -188,6 +208,11 @@ function setViewMode(mode) {
   document.querySelectorAll('.view-db').forEach(el => {
     el.style.display = mode === 'database' ? '' : 'none';
   });
+
+  // Re-render Table Details if open
+  if (state.tableDetailsCurrentTable && state.tableDetailsData) {
+    renderTableDetailsRows();
+  }
 }
 
 // ====================================================================
@@ -386,7 +411,8 @@ async function submitAddSupplier(e) {
 }
 
 async function handleDeleteSupplier(supplierId) {
-  if (!confirm("Are you sure you want to delete this supplier?")) return;
+  const confirmed = await showConfirmDialog("Delete Supplier", "Are you sure you want to delete this supplier?");
+  if (!confirmed) return;
 
   const { ok, data } = await fetchJSON(`/api/suppliers/${supplierId}`, {
     method: 'DELETE'
@@ -398,7 +424,6 @@ async function handleDeleteSupplier(supplierId) {
     await refreshAllData();
   } else {
     // Friendly block message when farmers exist
-    alert(data.message);
     showToast(data.message, 'error');
   }
 }
@@ -498,7 +523,8 @@ async function submitAddFarmer(e) {
 }
 
 async function handleDeleteFarmer(farmerId) {
-  if (!confirm("Are you sure you want to delete this farmer?")) return;
+  const confirmed = await showConfirmDialog("Delete Farmer", "Are you sure you want to delete this farmer?");
+  if (!confirmed) return;
 
   const { ok, data } = await fetchJSON(`/api/farmers/${farmerId}`, {
     method: 'DELETE'
@@ -509,7 +535,6 @@ async function handleDeleteFarmer(farmerId) {
     updateDatabaseChangesDrawer(data);
     await refreshAllData();
   } else {
-    alert(data.message);
     showToast(data.message, 'error');
   }
 }
@@ -678,7 +703,6 @@ async function submitSendBatch(e) {
     await refreshAllData();
   } else {
     // Shows plain English failure (e.g. Only 20 kg left or Deforestation land blocked)
-    alert(data.message);
     showToast(data.message, 'error');
   }
 }
@@ -1103,26 +1127,15 @@ function renderTableDiagram() {
   const container = document.getElementById('table-diagram-cards');
   if (!container || !state.schema) return;
 
-  const tableDescriptions = {
-    suppliers: "Stores primary suppliers and export traders.",
-    farmers: "Stores individual farmers linked to suppliers (ON DELETE RESTRICT).",
-    products: "The 7 regulated commodities (Coffee, Cocoa, Palm Oil, etc.).",
-    batches: "Harvested lots of produce with weights and harvest dates.",
-    warehouses: "Storage facilities holding produce before export.",
-    shipments: "Export consignments heading overseas.",
-    movements: "Records kg moved from batches to warehouses or shipments.",
-    change_log: "Plain-English audit log of all database modifications."
-  };
-
   container.innerHTML = Object.entries(state.schema).map(([name, info]) => {
     return `
-      <div class="p-4 bg-slate-900 text-slate-100 rounded-xl border border-slate-800 shadow space-y-3 cursor-pointer hover:border-emerald-500 transition-colors" onclick="alert('${name}: ${tableDescriptions[name] || 'Database table'}')">
+      <div id="diagram-card-${name}" class="p-4 bg-slate-900 text-slate-100 rounded-xl border border-slate-800 shadow space-y-3 cursor-pointer hover:border-emerald-500 transition-all hover:shadow-lg" onclick="openTableDetailsCard('${name}')">
         <div class="flex items-center justify-between pb-2 border-b border-slate-800">
           <div class="flex items-center space-x-2">
             <i data-lucide="table" class="w-4 h-4 text-emerald-400"></i>
             <span class="font-mono font-bold text-sm text-white">${name}</span>
           </div>
-          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">${info.row_count} rows</span>
+          <span id="diagram-card-count-${name}" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold transition-all">${info.row_count} rows</span>
         </div>
 
         <p class="text-[11px] text-slate-400 leading-tight">${tableDescriptions[name] || ''}</p>
@@ -1138,8 +1151,8 @@ function renderTableDiagram() {
                   ${c.name}
                 </span>
                 <span class="text-[9px] text-slate-500">
-                  ${isPK ? '<span class="px-1 bg-amber-400/20 text-amber-300 rounded">PK</span>' : ''}
-                  ${fk ? `<span class="px-1 bg-sky-400/20 text-sky-300 rounded">FK &rarr; ${fk.table}</span>` : ''}
+                  ${isPK ? '<span class="px-1 bg-amber-400/20 text-amber-300 rounded font-bold">PK</span>' : ''}
+                  ${fk ? `<span class="px-1 bg-sky-400/20 text-sky-300 rounded font-bold">FK &rarr; ${fk.table}</span>` : ''}
                   ${c.type}
                 </span>
               </div>
@@ -1151,6 +1164,631 @@ function renderTableDiagram() {
   }).join('');
 
   if (window.lucide) lucide.createIcons();
+}
+
+// ====================================================================
+// CONFIRMATION DIALOG (In-Page Modal, replaces window.confirm)
+// ====================================================================
+let confirmDialogResolver = null;
+
+function showConfirmDialog(title, message) {
+  return new Promise((resolve) => {
+    confirmDialogResolver = resolve;
+    const modal = document.getElementById('confirm-modal');
+    if (!modal) {
+      resolve(true);
+      return;
+    }
+    const titleEl = document.getElementById('confirm-modal-title');
+    const msgEl = document.getElementById('confirm-modal-msg');
+    if (titleEl) titleEl.textContent = title || 'Confirm Action';
+    if (msgEl) msgEl.textContent = message || 'Are you sure you want to proceed?';
+    modal.classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+  });
+}
+
+function resolveConfirmDialog(result) {
+  const modal = document.getElementById('confirm-modal');
+  if (modal) modal.classList.add('hidden');
+  if (confirmDialogResolver) {
+    confirmDialogResolver(result);
+    confirmDialogResolver = null;
+  }
+}
+
+// ====================================================================
+// FK DISPLAY RESOLVER (Simple View vs Database View)
+// ====================================================================
+function resolveFKDisplayName(fkTable, fkValue) {
+  if (fkValue === null || fkValue === undefined || fkValue === '') return 'null';
+  if (!fkTable) return String(fkValue);
+
+  const valStr = String(fkValue);
+
+  if (fkTable === 'suppliers') {
+    const s = state.suppliers.find(x => String(x.supplier_id) === valStr);
+    return s ? s.name : `Supplier #${valStr}`;
+  }
+  if (fkTable === 'farmers') {
+    const f = state.farmers.find(x => String(x.farmer_id) === valStr);
+    return f ? f.name : `Farmer #${valStr}`;
+  }
+  if (fkTable === 'products') {
+    const p = state.products.find(x => String(x.product_id) === valStr);
+    return p ? p.name : `Product #${valStr}`;
+  }
+  if (fkTable === 'batches') {
+    const b = state.batches.find(x => String(x.batch_id) === valStr);
+    return b ? b.batch_code : `Batch #${valStr}`;
+  }
+  if (fkTable === 'warehouses') {
+    const w = state.warehouses.find(x => String(x.warehouse_id) === valStr);
+    return w ? w.name : `Warehouse #${valStr}`;
+  }
+  if (fkTable === 'shipments') {
+    const sh = state.shipments.find(x => String(x.shipment_id) === valStr);
+    return sh ? sh.shipment_code : `Shipment #${valStr}`;
+  }
+
+  return valStr;
+}
+
+// ====================================================================
+// TABLE DETAILS SLIDE-OVER CARD
+// ====================================================================
+async function openTableDetailsCard(tableName, pushHistory = true) {
+  if (!tableName) return;
+
+  if (pushHistory && state.tableDetailsCurrentTable && state.tableDetailsCurrentTable !== tableName) {
+    state.tableDetailsHistory.push(state.tableDetailsCurrentTable);
+  }
+
+  state.tableDetailsCurrentTable = tableName;
+  state.tableDetailsSearchQuery = '';
+  state.tableDetailsCurrentPage = 1;
+
+  // Update back button
+  const backWrapper = document.getElementById('td-back-wrapper');
+  const backLabel = document.getElementById('td-back-label');
+  if (backWrapper && backLabel) {
+    if (state.tableDetailsHistory.length > 0) {
+      const prevTable = state.tableDetailsHistory[state.tableDetailsHistory.length - 1];
+      backLabel.textContent = `Back to ${prevTable}`;
+      backWrapper.classList.remove('hidden');
+    } else {
+      backWrapper.classList.add('hidden');
+    }
+  }
+
+  // Header info
+  const titleEl = document.getElementById('td-table-name');
+  if (titleEl) titleEl.textContent = tableName;
+
+  const descEl = document.getElementById('td-table-desc');
+  if (descEl) descEl.textContent = tableDescriptions[tableName] || "Database table";
+
+  // Reset search box and page selector
+  const searchInput = document.getElementById('td-search-input');
+  if (searchInput) searchInput.value = '';
+  const pageSizeSelect = document.getElementById('td-page-size');
+  if (pageSizeSelect) pageSizeSelect.value = String(state.tableDetailsPageSize || 25);
+
+  // Show backdrop & slide-over panel
+  const backdrop = document.getElementById('table-details-backdrop');
+  const panel = document.getElementById('table-details-panel');
+  if (backdrop) backdrop.classList.remove('hidden');
+  if (panel) panel.classList.remove('translate-x-full');
+
+  hideCardToast();
+
+  await fetchAndRenderTableDetails(tableName);
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeTableDetailsCard() {
+  const panel = document.getElementById('table-details-panel');
+  const backdrop = document.getElementById('table-details-backdrop');
+  if (panel) panel.classList.add('translate-x-full');
+  if (backdrop) {
+    setTimeout(() => {
+      backdrop.classList.add('hidden');
+    }, 280);
+  }
+  state.tableDetailsCurrentTable = null;
+  state.tableDetailsHistory = [];
+  state.tableDetailsLastRows = [];
+  hideCardToast();
+}
+
+function goBackTableDetails() {
+  if (state.tableDetailsHistory.length > 0) {
+    const prevTable = state.tableDetailsHistory.pop();
+    openTableDetailsCard(prevTable, false);
+  }
+}
+
+function navigateToTableDetails(targetTable, rowVal) {
+  if (!targetTable) return;
+  openTableDetailsCard(targetTable, true);
+}
+
+async function fetchAndRenderTableDetails(tableName, highlightRowId = null, flashType = null, diffMap = null) {
+  if (!tableName || state.tableDetailsCurrentTable !== tableName) return;
+
+  const url = `/api/tables/${tableName}/rows?limit=100&offset=0`;
+  const { ok, data } = await fetchJSON(url);
+
+  if (!ok) {
+    showToast(data.message || `Failed to load table ${tableName}`, 'error');
+    return;
+  }
+
+  state.tableDetailsData = data;
+  state.tableDetailsLastRows = data.rows || [];
+
+  // Animate row count badge
+  const rowCountBadge = document.getElementById('td-row-count-badge');
+  if (rowCountBadge) {
+    rowCountBadge.textContent = `${data.total} row${data.total === 1 ? '' : 's'}`;
+    rowCountBadge.classList.add('scale-110', 'text-emerald-300');
+    setTimeout(() => {
+      rowCountBadge.classList.remove('scale-110', 'text-emerald-300');
+    }, 350);
+  }
+
+  // Section A: Columns
+  renderTableDetailsColumns(data.columns);
+
+  // Section C: SQL Used
+  const sqlEl = document.getElementById('td-sql-text');
+  const msEl = document.getElementById('td-sql-ms');
+  if (sqlEl) sqlEl.textContent = data.sql || `SELECT * FROM ${tableName} ORDER BY 1 DESC LIMIT 100`;
+  if (msEl) msEl.textContent = `${data.ms || 0} ms`;
+
+  // Section B: Filter & render rows
+  renderTableDetailsRows(highlightRowId, flashType, diffMap);
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function renderTableDetailsColumns(columns) {
+  const container = document.getElementById('td-columns-list');
+  const countEl = document.getElementById('td-col-count');
+  if (!container) return;
+
+  if (countEl) countEl.textContent = `${columns.length} columns`;
+
+  container.innerHTML = columns.map(c => {
+    const isPK = c.pk === 1 || c.pk === true;
+    const fk = c.fk;
+
+    let badge = '';
+    if (isPK) {
+      badge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">PK</span>`;
+    }
+    if (fk) {
+      const targetStr = typeof fk === 'object' ? `${fk.table}.${fk.to}` : fk;
+      badge += ` <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-400/20 text-sky-300 border border-sky-400/30">&rarr; ${targetStr}</span>`;
+    }
+
+    return `
+      <div class="flex items-center justify-between py-1 px-2 rounded hover:bg-slate-900/50">
+        <div class="flex items-center space-x-2">
+          <span class="font-bold ${isPK ? 'text-amber-300' : (fk ? 'text-sky-300' : 'text-slate-200')}">${c.name}</span>
+          ${badge}
+        </div>
+        <span class="text-[10px] text-slate-500 font-mono">${c.type}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTableDetailsRows(highlightRowId = null, flashType = null, diffMap = null) {
+  if (!state.tableDetailsData) return;
+
+  const thead = document.getElementById('td-rows-thead');
+  const tbody = document.getElementById('td-rows-tbody');
+  if (!thead || !tbody) return;
+
+  const columns = state.tableDetailsData.columns || [];
+  let allRows = state.tableDetailsData.rows || [];
+
+  // Filter with search query
+  const q = (state.tableDetailsSearchQuery || '').toLowerCase().trim();
+  let filteredRows = allRows;
+  if (q) {
+    filteredRows = allRows.filter(r => {
+      return Object.values(r).some(val => {
+        if (val === null || val === undefined) return false;
+        return String(val).toLowerCase().includes(q);
+      });
+    });
+  }
+
+  // Pagination calculation
+  const total = filteredRows.length;
+  let pageSize = state.tableDetailsPageSize;
+  let pageRows = filteredRows;
+  let totalPages = 1;
+
+  if (pageSize !== 'all') {
+    pageSize = parseInt(pageSize, 10) || 25;
+    totalPages = Math.max(1, Math.ceil(total / pageSize));
+    if (state.tableDetailsCurrentPage > totalPages) state.tableDetailsCurrentPage = totalPages;
+    if (state.tableDetailsCurrentPage < 1) state.tableDetailsCurrentPage = 1;
+    const startIdx = (state.tableDetailsCurrentPage - 1) * pageSize;
+    pageRows = filteredRows.slice(startIdx, startIdx + pageSize);
+  }
+
+  // Update pagination bar
+  const pageInfoEl = document.getElementById('td-page-info');
+  const pageNumEl = document.getElementById('td-current-page-num');
+  const prevBtn = document.getElementById('td-prev-btn');
+  const nextBtn = document.getElementById('td-next-btn');
+
+  if (pageInfoEl) {
+    if (total === 0) {
+      pageInfoEl.textContent = '0 rows found';
+    } else if (pageSize === 'all') {
+      pageInfoEl.textContent = `Showing all ${total} rows`;
+    } else {
+      const startIdx = (state.tableDetailsCurrentPage - 1) * pageSize + 1;
+      const endIdx = Math.min(startIdx + pageRows.length - 1, total);
+      pageInfoEl.textContent = `Showing ${startIdx}-${endIdx} of ${total}`;
+    }
+  }
+  if (pageNumEl) pageNumEl.textContent = String(state.tableDetailsCurrentPage);
+  if (prevBtn) prevBtn.disabled = (state.tableDetailsCurrentPage <= 1 || pageSize === 'all');
+  if (nextBtn) nextBtn.disabled = (state.tableDetailsCurrentPage >= totalPages || pageSize === 'all');
+
+  // Render Table Header (sticky)
+  thead.innerHTML = `
+    <tr>
+      ${columns.map(c => `
+        <th class="px-3 py-2 whitespace-nowrap text-left border-b border-slate-700 bg-slate-800 font-bold ${c.pk ? 'text-amber-300' : (c.fk ? 'text-sky-300' : 'text-slate-300')}">
+          ${c.name}
+          ${c.pk ? '<span class="text-[9px] text-amber-400 ml-1">PK</span>' : ''}
+          ${c.fk ? '<span class="text-[9px] text-sky-400 ml-1">FK</span>' : ''}
+        </th>
+      `).join('')}
+    </tr>
+  `;
+
+  if (pageRows.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="${columns.length}" class="p-6 text-center text-slate-500 font-sans">
+          No matching rows found.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  // Find primary key column
+  const pkCol = columns.find(c => c.pk === 1 || c.pk === true);
+  const pkName = pkCol ? pkCol.name : null;
+
+  tbody.innerHTML = pageRows.map(row => {
+    const rowIdVal = pkName ? row[pkName] : null;
+    let flashClass = '';
+    if (highlightRowId !== null && String(rowIdVal) === String(highlightRowId)) {
+      if (flashType === 'INSERT') flashClass = 'row-new-flash';
+      else if (flashType === 'UPDATE') flashClass = 'row-update-flash';
+      else if (flashType === 'DELETE') flashClass = 'row-delete-flash';
+    }
+
+    const rowDomId = rowIdVal !== null ? `id="td-row-${rowIdVal}"` : '';
+
+    return `
+      <tr class="even:bg-slate-800/40 hover:bg-slate-800/70 transition-colors ${flashClass}" ${rowDomId}>
+        ${columns.map(col => {
+          const val = row[col.name];
+          let cellHtml = '';
+
+          if (val === null || val === undefined) {
+            cellHtml = `<span class="text-slate-500 italic font-normal">null</span>`;
+          } else if (diffMap && String(rowIdVal) === String(highlightRowId) && diffMap[col.name]) {
+            const oldVal = diffMap[col.name].oldVal;
+            cellHtml = `<del class="text-rose-400 line-through mr-1 opacity-70">${oldVal === null ? 'null' : oldVal}</del><ins class="text-emerald-300 no-underline font-bold">${val}</ins>`;
+          } else if (col.fk) {
+            const fkTable = col.fk.table;
+            const friendlyName = resolveFKDisplayName(fkTable, val);
+            const isSimple = state.viewMode === 'simple';
+            cellHtml = `
+              <button onclick="navigateToTableDetails('${fkTable}', '${val}')" class="text-sky-400 hover:text-sky-300 hover:underline font-bold transition-colors cursor-pointer text-left font-mono" title="Jump to ${fkTable} (${val})">
+                <span class="view-simple" style="${isSimple ? '' : 'display:none;'}">${escapeHtml(friendlyName)}</span>
+                <span class="view-db" style="${isSimple ? 'display:none;' : ''}">${escapeHtml(String(val))}</span>
+              </button>
+            `;
+          } else {
+            cellHtml = `<span>${escapeHtml(String(val))}</span>`;
+          }
+
+          return `<td class="td-cell ${col.pk ? 'font-bold text-amber-200' : 'text-slate-300'}">${cellHtml}</td>`;
+        }).join('')}
+      </tr>
+    `;
+  }).join('');
+}
+
+function handleTableDetailsSearch(query) {
+  state.tableDetailsSearchQuery = query;
+  state.tableDetailsCurrentPage = 1;
+  renderTableDetailsRows();
+}
+
+function handleTableDetailsPageSize(size) {
+  state.tableDetailsPageSize = size === 'all' ? 'all' : parseInt(size, 10);
+  state.tableDetailsCurrentPage = 1;
+  renderTableDetailsRows();
+}
+
+function tableDetailsPrevPage() {
+  if (state.tableDetailsCurrentPage > 1) {
+    state.tableDetailsCurrentPage--;
+    renderTableDetailsRows();
+  }
+}
+
+function tableDetailsNextPage() {
+  state.tableDetailsCurrentPage++;
+  renderTableDetailsRows();
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function downloadCurrentTableCSV() {
+  const tbl = state.tableDetailsCurrentTable;
+  const rows = state.tableDetailsLastRows;
+  if (!tbl || !rows || rows.length === 0) {
+    showToast("No rows to export.", "error");
+    return;
+  }
+
+  const columns = state.tableDetailsData ? state.tableDetailsData.columns.map(c => c.name) : Object.keys(rows[0]);
+  const lines = [columns.join(',')];
+
+  for (const r of rows) {
+    const rowValues = columns.map(col => {
+      let v = r[col];
+      if (v === null || v === undefined) return '';
+      v = String(v).replace(/"/g, '""');
+      return `"${v}"`;
+    });
+    lines.push(rowValues.join(','));
+  }
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${tbl}_export_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(`Downloaded ${tbl}.csv`, "success");
+}
+
+function openCurrentTableInDataTables() {
+  const tbl = state.tableDetailsCurrentTable;
+  if (!tbl) return;
+  closeTableDetailsCard();
+  switchTab('db-data-tables');
+  const selector = document.getElementById('raw-table-selector');
+  if (selector) {
+    selector.value = tbl;
+    loadRawTableData(tbl);
+  }
+}
+
+// Card Toast
+let cardToastTimeout = null;
+
+function showCardToast(text, highlightRowId = null) {
+  const toast = document.getElementById('td-card-toast');
+  const toastText = document.getElementById('td-card-toast-text');
+  const toastBtn = document.getElementById('td-card-toast-btn');
+  if (!toast || !toastText) return;
+
+  toastText.textContent = text;
+  if (highlightRowId !== null && toastBtn) {
+    toastBtn.style.display = 'inline-block';
+    toastBtn.onclick = () => highlightNewestRow(highlightRowId);
+  } else if (toastBtn) {
+    toastBtn.style.display = 'none';
+  }
+
+  toast.classList.remove('hidden');
+  if (cardToastTimeout) clearTimeout(cardToastTimeout);
+  cardToastTimeout = setTimeout(() => {
+    hideCardToast();
+  }, 6000);
+}
+
+function hideCardToast() {
+  const toast = document.getElementById('td-card-toast');
+  if (toast) toast.classList.add('hidden');
+  if (cardToastTimeout) {
+    clearTimeout(cardToastTimeout);
+    cardToastTimeout = null;
+  }
+}
+
+function highlightNewestRow(rowId = null) {
+  let targetRow = null;
+  if (rowId !== null && rowId !== undefined) {
+    targetRow = document.getElementById(`td-row-${rowId}`);
+  }
+  if (!targetRow) {
+    const tbody = document.getElementById('td-rows-tbody');
+    if (tbody && tbody.firstElementChild) {
+      targetRow = tbody.firstElementChild;
+    }
+  }
+  if (targetRow) {
+    targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    targetRow.classList.remove('row-new-flash', 'row-update-flash');
+    void targetRow.offsetWidth;
+    targetRow.classList.add('row-new-flash');
+  }
+}
+
+function pulseDiagramCard(tableName) {
+  if (!tableName) return;
+  const card = document.getElementById(`diagram-card-${tableName}`);
+  if (card) {
+    card.classList.remove('card-pulse-change');
+    void card.offsetWidth;
+    card.classList.add('card-pulse-change');
+    setTimeout(() => {
+      card.classList.remove('card-pulse-change');
+    }, 1300);
+  }
+
+  // Update small row count on diagram card
+  fetchJSON('/api/schema').then(({ ok, data }) => {
+    if (ok && data.tables) {
+      state.schema = data.tables;
+      Object.entries(data.tables).forEach(([name, info]) => {
+        const countEl = document.getElementById(`diagram-card-count-${name}`);
+        if (countEl) countEl.textContent = `${info.row_count} rows`;
+      });
+    }
+  });
+}
+
+// ====================================================================
+// LIVE SSE STREAM & FALLBACK POLLING
+// ====================================================================
+let fallbackPollInterval = null;
+let lastPollSignature = null;
+
+function initSSEStream() {
+  if (state.sseSource) {
+    try { state.sseSource.close(); } catch (e) {}
+  }
+
+  try {
+    state.sseSource = new EventSource('/api/stream');
+
+    state.sseSource.onopen = () => {
+      state.sseConnected = true;
+      stopFallbackPolling();
+    };
+
+    state.sseSource.onmessage = (e) => {
+      try {
+        if (!e.data || e.data.startsWith(':')) return;
+        const event = JSON.parse(e.data);
+        handleDatabaseLiveEvent(event);
+      } catch (err) {
+        console.error("SSE parse error", err);
+      }
+    };
+
+    state.sseSource.onerror = () => {
+      state.sseConnected = false;
+      startFallbackPolling();
+    };
+  } catch (err) {
+    startFallbackPolling();
+  }
+}
+
+async function handleDatabaseLiveEvent(event) {
+  if (!event || !event.table) return;
+
+  // 1. Always update row counts & pulse on table diagram cards
+  pulseDiagramCard(event.table);
+
+  // 2. If the details card is open and matches this table (or all)
+  if (state.tableDetailsCurrentTable && (state.tableDetailsCurrentTable === event.table || event.table === 'all')) {
+    const tbl = state.tableDetailsCurrentTable;
+    const oldRows = state.tableDetailsLastRows ? [...state.tableDetailsLastRows] : [];
+
+    if (event.action === 'INSERT') {
+      await fetchAndRenderTableDetails(tbl, event.row_id, 'INSERT');
+      showCardToast(`New row added: ${tbl} #${event.row_id || ''}`, event.row_id);
+    } else if (event.action === 'UPDATE') {
+      // Compute column diff if row exists in oldRows
+      let diffMap = null;
+      const { ok, data } = await fetchJSON(`/api/tables/${tbl}/rows?limit=100&offset=0`);
+      if (ok && data.rows) {
+        const pkCol = data.columns.find(c => c.pk === 1 || c.pk === true);
+        const pkName = pkCol ? pkCol.name : null;
+        if (pkName && event.row_id !== null) {
+          const oldRow = oldRows.find(r => String(r[pkName]) === String(event.row_id));
+          const newRow = data.rows.find(r => String(r[pkName]) === String(event.row_id));
+          if (oldRow && newRow) {
+            diffMap = {};
+            data.columns.forEach(col => {
+              if (String(oldRow[col.name]) !== String(newRow[col.name])) {
+                diffMap[col.name] = { oldVal: oldRow[col.name], newVal: newRow[col.name] };
+              }
+            });
+          }
+        }
+      }
+      await fetchAndRenderTableDetails(tbl, event.row_id, 'UPDATE', diffMap);
+      showCardToast(`Row updated: ${tbl} #${event.row_id || ''}`, event.row_id);
+    } else if (event.action === 'DELETE') {
+      const rowEl = document.getElementById(`td-row-${event.row_id}`);
+      if (rowEl) {
+        rowEl.classList.remove('row-new-flash', 'row-update-flash');
+        rowEl.classList.add('row-delete-flash');
+      }
+      setTimeout(async () => {
+        await fetchAndRenderTableDetails(tbl, null, null);
+      }, 900);
+      showCardToast(`Row deleted from ${tbl}: #${event.row_id || ''}`);
+    } else {
+      await fetchAndRenderTableDetails(tbl, null, null);
+    }
+  }
+
+  // 3. Keep stats and history synced in background
+  loadStats();
+  loadChangeHistory();
+}
+
+function startFallbackPolling() {
+  if (fallbackPollInterval) return;
+  fallbackPollInterval = setInterval(async () => {
+    if (!state.tableDetailsCurrentTable) return;
+    const tbl = state.tableDetailsCurrentTable;
+
+    const { ok, data } = await fetchJSON('/api/changes?limit=1');
+    if (ok && data.records && data.records.length > 0) {
+      const rec = data.records[0];
+      const sig = `${rec.log_id}-${rec.table_name}-${rec.action}`;
+      if (lastPollSignature && lastPollSignature !== sig) {
+        if (rec.table_name === tbl || rec.table_name === 'all') {
+          handleDatabaseLiveEvent({
+            table: rec.table_name,
+            action: rec.action,
+            row_id: null
+          });
+        }
+      }
+      lastPollSignature = sig;
+    }
+  }, 2000);
+}
+
+function stopFallbackPolling() {
+  if (fallbackPollInterval) {
+    clearInterval(fallbackPollInterval);
+    fallbackPollInterval = null;
+  }
 }
 
 // ====================================================================
@@ -1320,7 +1958,8 @@ async function loadChangeHistory() {
 // RESET DEMO DATA
 // ====================================================================
 async function resetDemoData() {
-  if (!confirm("Reset database to clean initial state? All test edits will be replaced with original demo records.")) return;
+  const confirmed = await showConfirmDialog("Reset Database", "Reset database to clean initial state? All test edits will be replaced with original demo records.");
+  if (!confirmed) return;
 
   const { ok, data } = await fetchJSON('/api/reset', { method: 'POST' });
   if (ok) {

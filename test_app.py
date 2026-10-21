@@ -296,3 +296,192 @@ def test_12_reset_database(client):
     c.execute("SELECT COUNT(*) FROM suppliers")
     assert c.fetchone()[0] == 3
     conn.close()
+
+def test_13_get_table_rows_metadata_and_data(client):
+    """5a. GET /api/tables/batches/rows returns all rows and column metadata (with PK and FK flags)."""
+    res = client.get('/api/tables/batches/rows')
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data['status'] == 'success'
+    assert data['table'] == 'batches'
+    assert 'columns' in data
+    assert 'rows' in data
+    assert 'total' in data
+    assert 'sql' in data
+    assert 'ms' in data
+
+    cols = {c['name']: c for c in data['columns']}
+    # Primary Key check
+    assert cols['batch_id']['pk'] == 1
+    assert cols['batch_id']['fk'] is None
+
+    # Foreign Key checks
+    assert cols['farmer_id']['pk'] == 0
+    assert cols['farmer_id']['fk'] == {'table': 'farmers', 'to': 'farmer_id'}
+    assert cols['product_id']['pk'] == 0
+    assert cols['product_id']['fk'] == {'table': 'products', 'to': 'product_id'}
+
+    # Rows check
+    assert len(data['rows']) == data['total']
+    assert data['total'] >= 6
+
+    # Test search query
+    search_res = client.get('/api/tables/batches/rows?q=COF-0001')
+    assert search_res.status_code == 200
+    search_data = search_res.get_json()
+    assert search_data['total'] >= 1
+    assert any(r['batch_code'] == 'COF-0001' for r in search_data['rows'])
+
+    # Test pagination
+    page_res = client.get('/api/tables/batches/rows?limit=2&offset=0')
+    assert page_res.status_code == 200
+    page_data = page_res.get_json()
+    assert len(page_data['rows']) == 2
+    assert page_data['total'] == data['total']
+
+def test_14_table_rows_invalid_name_and_injection(client):
+    """5b. An unknown table name or a name like 'batches; DROP TABLE x' returns 400/404."""
+    # Unknown table
+    res1 = client.get('/api/tables/unknown_table/rows')
+    assert res1.status_code == 404
+
+    # SQL Injection attempt
+    res2 = client.get('/api/tables/batches%3B%20DROP%20TABLE%20x/rows')
+    assert res2.status_code in (400, 404)
+
+    # Internal sqlite table
+    res3 = client.get('/api/tables/sqlite_master/rows')
+    assert res3.status_code in (400, 404)
+
+def test_15_sse_stream_insert(client):
+    """5c. Open /api/stream, add a farmer through POST /api/farmers, check event arrives within 2 seconds."""
+    from app import sse_lock, sse_subscribers
+    import queue
+
+    q = queue.Queue()
+    with sse_lock:
+        sse_subscribers.append(q)
+
+    try:
+        post_res = client.post('/api/farmers', json={
+            "supplier_id": 1,
+            "name": "Live Event Farmer",
+            "village": "Suntikoppa",
+            "deforestation_free": 1
+        })
+        assert post_res.status_code == 201
+        farmer_id = post_res.get_json()['data']['farmer_id']
+
+        # Event must arrive within 2 seconds
+        raw_event = q.get(timeout=2.0)
+        event = json.loads(raw_event)
+        assert event['table'] == 'farmers'
+        assert event['action'] == 'INSERT'
+        assert event['row_id'] == farmer_id
+    finally:
+        with sse_lock:
+            if q in sse_subscribers:
+                sse_subscribers.remove(q)
+
+def test_16_sse_stream_update_and_delete(client):
+    """5d. The same SSE check for UPDATE and DELETE."""
+    from app import sse_lock, sse_subscribers
+    import queue
+
+    # 1. First create a farmer to update and delete
+    create_res = client.post('/api/farmers', json={
+        "supplier_id": 1,
+        "name": "Farmer For Update Delete",
+        "village": "Kushalnagar",
+        "deforestation_free": 1
+    })
+    farmer_id = create_res.get_json()['data']['farmer_id']
+
+    q = queue.Queue()
+    with sse_lock:
+        sse_subscribers.append(q)
+
+    try:
+        # Test UPDATE event
+        update_res = client.patch(f'/api/farmers/{farmer_id}', json={
+            "name": "Farmer Renamed",
+            "village": "Updated Village"
+        })
+        assert update_res.status_code == 200
+
+        raw_event = q.get(timeout=2.0)
+        event = json.loads(raw_event)
+        assert event['table'] == 'farmers'
+        assert event['action'] == 'UPDATE'
+        assert event['row_id'] == farmer_id
+
+        # Test DELETE event
+        delete_res = client.delete(f'/api/farmers/{farmer_id}')
+        assert delete_res.status_code == 200
+
+        raw_delete_event = q.get(timeout=2.0)
+        del_event = json.loads(raw_delete_event)
+        assert del_event['table'] == 'farmers'
+        assert del_event['action'] == 'DELETE'
+        assert del_event['row_id'] == farmer_id
+    finally:
+        with sse_lock:
+            if q in sse_subscribers:
+                sse_subscribers.remove(q)
+
+def test_17_api_row_count_matches_sqlite(client):
+    """5e. The row count from the API equals SELECT COUNT(*) from sqlite3 after every action."""
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+
+    # Initial check on farmers
+    api_res = client.get('/api/tables/farmers/rows')
+    c.execute("SELECT COUNT(*) FROM farmers")
+    db_count = c.fetchone()[0]
+    assert api_res.get_json()['total'] == db_count
+
+    # Action 1: Add a farmer
+    post_res = client.post('/api/farmers', json={
+        "supplier_id": 1,
+        "name": "Count Check Farmer",
+        "village": "Test Village",
+        "deforestation_free": 1
+    })
+    assert post_res.status_code == 201
+    f_id = post_res.get_json()['data']['farmer_id']
+
+    api_res = client.get('/api/tables/farmers/rows')
+    c.execute("SELECT COUNT(*) FROM farmers")
+    db_count = c.fetchone()[0]
+    assert api_res.get_json()['total'] == db_count
+
+    # Action 2: Update farmer
+    client.patch(f'/api/farmers/{f_id}', json={"name": "Count Check Renamed"})
+    api_res = client.get('/api/tables/farmers/rows')
+    c.execute("SELECT COUNT(*) FROM farmers")
+    db_count = c.fetchone()[0]
+    assert api_res.get_json()['total'] == db_count
+
+    # Action 3: Delete farmer
+    del_res = client.delete(f'/api/farmers/{f_id}')
+    assert del_res.status_code == 200
+    api_res = client.get('/api/tables/farmers/rows')
+    c.execute("SELECT COUNT(*) FROM farmers")
+    db_count = c.fetchone()[0]
+    assert api_res.get_json()['total'] == db_count
+
+    # Action 4: Add batch
+    b_res = client.post('/api/batches', json={
+        "farmer_id": 1,
+        "product_id": 1,
+        "quantity_kg": 45.0,
+        "harvest_date": "2026-10-10"
+    })
+    assert b_res.status_code == 201
+    api_b = client.get('/api/tables/batches/rows')
+    c.execute("SELECT COUNT(*) FROM batches")
+    db_b_count = c.fetchone()[0]
+    assert api_b.get_json()['total'] == db_b_count
+
+    conn.close()
+

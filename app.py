@@ -4,21 +4,88 @@ Flask Backend Application
 """
 
 import os
+import shutil
 import sqlite3
 import json
 import re
+import time
+import queue
+import threading
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, g
+from flask import Flask, render_template, request, jsonify, g, Response
+
+# SSE Subscribers
+sse_lock = threading.Lock()
+sse_subscribers = []
+
+
+def broadcast_sse(table, action, row_id=None):
+    """Emits an event {table, action, row_id} to all connected SSE clients right after db.commit()."""
+    payload = json.dumps({"table": table, "action": action, "row_id": row_id})
+    with sse_lock:
+        dead = []
+        for q in sse_subscribers:
+            try:
+                q.put_nowait(payload)
+            except Exception:
+                dead.append(q)
+        for d in dead:
+            if d in sse_subscribers:
+                sse_subscribers.remove(d)
+
 
 app = Flask(__name__)
-BASE_DIR = os.path.dirname(__file__)
-DB_FILE = os.path.join(BASE_DIR, 'eudr.db')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ORIGINAL_DB_FILE = os.path.join(BASE_DIR, 'eudr.db')
 SCHEMA_FILE = os.path.join(BASE_DIR, 'schema.sql')
 SEED_FILE = os.path.join(BASE_DIR, 'seed.sql')
 
 
+def _is_writable(path):
+    try:
+        testfile = os.path.join(path, '.write_test')
+        with open(testfile, 'w') as f:
+            f.write('1')
+        os.remove(testfile)
+        return True
+    except Exception:
+        return False
+
+
+# In serverless environments (e.g., Vercel, AWS Lambda), the deployment directory is read-only.
+# SQLite requires write access for transactions, journaling, and locks.
+# We detect serverless environments and point SQLite to the writable /tmp directory.
+IS_SERVERLESS = bool(
+    os.environ.get('VERCEL')
+    or os.environ.get('AWS_LAMBDA_FUNCTION_NAME')
+    or not _is_writable(BASE_DIR)
+)
+
+if IS_SERVERLESS:
+    DB_FILE = os.path.join('/tmp', 'eudr.db')
+else:
+    DB_FILE = ORIGINAL_DB_FILE
+
+
+def ensure_db_ready():
+    """Ensures database file exists and is writable in serverless environments."""
+    if IS_SERVERLESS:
+        if not os.path.exists(DB_FILE) or os.path.getsize(DB_FILE) == 0:
+            if os.path.exists(ORIGINAL_DB_FILE):
+                try:
+                    shutil.copyfile(ORIGINAL_DB_FILE, DB_FILE)
+                    os.chmod(DB_FILE, 0o666)
+                except Exception:
+                    init_db(force=True)
+            else:
+                init_db(force=True)
+    elif not os.path.exists(DB_FILE):
+        init_db(force=False)
+
+
 def get_db():
     if 'db' not in g:
+        ensure_db_ready()
         g.db = sqlite3.connect(DB_FILE)
         g.db.row_factory = sqlite3.Row
         g.db.execute("PRAGMA foreign_keys = ON;")
@@ -43,6 +110,14 @@ def log_change(cursor, table_name, action, summary, row_data=None):
 
 def init_db(force=False):
     """Initializes schema and seed data if not present or on reset."""
+    if IS_SERVERLESS:
+        target_dir = os.path.dirname(DB_FILE)
+        if target_dir and not os.path.exists(target_dir):
+            try:
+                os.makedirs(target_dir, exist_ok=True)
+            except Exception:
+                pass
+
     if force and os.path.exists(DB_FILE):
         try:
             os.remove(DB_FILE)
@@ -123,6 +198,7 @@ def add_supplier():
         new_row = {"supplier_id": supplier_id, "name": name, "country": country, "phone": phone}
         log_change(cursor, "suppliers", "INSERT", summary, new_row)
         db.commit()
+        broadcast_sse("suppliers", "INSERT", supplier_id)
 
         return jsonify({
             "status": "success",
@@ -170,6 +246,7 @@ def delete_supplier(supplier_id):
         summary = f"Deleted supplier '{sup_name}' (ID: {supplier_id})."
         log_change(cursor, "suppliers", "DELETE", summary, {"supplier_id": supplier_id, "name": sup_name})
         db.commit()
+        broadcast_sse("suppliers", "DELETE", supplier_id)
 
         return jsonify({
             "status": "success",
@@ -278,6 +355,7 @@ def add_farmer():
         }
         log_change(cursor, "farmers", "INSERT", summary, new_row)
         db.commit()
+        broadcast_sse("farmers", "INSERT", farmer_id)
 
         return jsonify({
             "status": "success",
@@ -325,6 +403,7 @@ def delete_farmer(farmer_id):
         summary = f"Deleted farmer '{farmer_name}' (ID: {farmer_id})."
         log_change(cursor, "farmers", "DELETE", summary, {"farmer_id": farmer_id, "name": farmer_name})
         db.commit()
+        broadcast_sse("farmers", "DELETE", farmer_id)
 
         return jsonify({
             "status": "success",
@@ -340,6 +419,61 @@ def delete_farmer(farmer_id):
     except sqlite3.IntegrityError:
         db.rollback()
         return jsonify({"status": "error", "message": "Cannot delete farmer: linked batches exist."}), 400
+    except Exception as e:
+        db.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 400
+
+
+@app.route('/api/farmers/<int:farmer_id>', methods=['PATCH', 'PUT'])
+def update_farmer(farmer_id):
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT * FROM farmers WHERE farmer_id = ?", (farmer_id,))
+    farmer = cursor.fetchone()
+    if not farmer:
+        return jsonify({"status": "error", "message": "Farmer not found."}), 404
+
+    data = request.get_json() or {}
+    name = (data.get('name') if 'name' in data else farmer['name'])
+    name = (name or '').strip()
+    village = (data.get('village') if 'village' in data else farmer['village'])
+    village = (village or '').strip()
+    supplier_id = data.get('supplier_id', farmer['supplier_id'])
+    deforestation_free = int(data.get('deforestation_free', farmer['deforestation_free']))
+
+    if not name:
+        return jsonify({"status": "error", "message": "Farmer name cannot be empty."}), 400
+
+    try:
+        cursor.execute(
+            "UPDATE farmers SET name = ?, village = ?, supplier_id = ?, deforestation_free = ? WHERE farmer_id = ?",
+            (name, village, supplier_id, deforestation_free, farmer_id)
+        )
+        summary = f"Updated farmer '{name}' (ID: {farmer_id})."
+        updated_row = {
+            "farmer_id": farmer_id,
+            "supplier_id": supplier_id,
+            "name": name,
+            "village": village,
+            "deforestation_free": deforestation_free
+        }
+        log_change(cursor, "farmers", "UPDATE", summary, updated_row)
+        db.commit()
+        broadcast_sse("farmers", "UPDATE", farmer_id)
+
+        return jsonify({
+            "status": "success",
+            "message": summary,
+            "data": updated_row,
+            "tables_changed": [{
+                "table": "farmers",
+                "action": "UPDATE",
+                "rows": [updated_row]
+            }],
+            "sql": [f"UPDATE farmers SET name = '{name}', village = '{village}' WHERE farmer_id = {farmer_id};"],
+            "keys_used": [f"farmers.farmer_id = {farmer_id} (PK)"]
+        })
     except Exception as e:
         db.rollback()
         return jsonify({"status": "error", "message": str(e)}), 400
@@ -473,6 +607,7 @@ def add_batch():
         }
         log_change(cursor, "batches", "INSERT", summary, new_row)
         db.commit()
+        broadcast_sse("batches", "INSERT", batch_id)
 
         return jsonify({
             "status": "success",
@@ -557,6 +692,7 @@ def add_warehouse():
         new_row = {"warehouse_id": warehouse_id, "name": name, "city": city, "total_kg_stored": 0.0}
         log_change(cursor, "warehouses", "INSERT", summary, new_row)
         db.commit()
+        broadcast_sse("warehouses", "INSERT", warehouse_id)
 
         return jsonify({
             "status": "success",
@@ -654,6 +790,7 @@ def add_shipment():
         new_row = {"shipment_id": shipment_id, "shipment_code": shipment_code, "destination": destination, "status": status, "total_kg": 0.0}
         log_change(cursor, "shipments", "INSERT", summary, new_row)
         db.commit()
+        broadcast_sse("shipments", "INSERT", shipment_id)
 
         return jsonify({
             "status": "success",
@@ -701,6 +838,7 @@ def update_shipment_status(shipment_id):
         }
         log_change(cursor, "shipments", "UPDATE", summary, row_data)
         db.commit()
+        broadcast_sse("shipments", "UPDATE", shipment_id)
 
         return jsonify({
             "status": "success",
@@ -829,6 +967,12 @@ def add_movement():
         }
         log_change(cursor, "movements", "INSERT", summary, new_row)
         db.commit()
+        broadcast_sse("movements", "INSERT", movement_id)
+        broadcast_sse("batches", "UPDATE", batch_id)
+        if warehouse_id:
+            broadcast_sse("warehouses", "UPDATE", warehouse_id)
+        if shipment_id:
+            broadcast_sse("shipments", "UPDATE", shipment_id)
 
         return jsonify({
             "status": "success",
@@ -1080,6 +1224,143 @@ def get_table_data(table_name):
 
 
 # --------------------------------------------------------------------
+# REST API: TABLE ROWS WITH METADATA (Table Diagram Card & Live Updates)
+# --------------------------------------------------------------------
+@app.route('/api/tables/<string:name>/rows', methods=['GET'])
+def get_table_rows(name):
+    """
+    Returns columns metadata, rows, total count, executed SQL, and execution time in ms.
+    Validates table name against sqlite_master to prevent SQL injection.
+    """
+    db = get_db()
+    cursor = db.cursor()
+
+    # Verify table name against sqlite_master (tables only, no sqlite_* internal tables)
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+    allowed_tables = [r['name'] for r in cursor.fetchall()]
+
+    if name not in allowed_tables:
+        return jsonify({
+            "status": "error",
+            "message": f"Table '{name}' not found or invalid."
+        }), 404
+
+    # Get column metadata
+    cursor.execute(f"PRAGMA table_info({name})")
+    cols = [dict(c) for c in cursor.fetchall()]
+
+    # Get foreign keys
+    cursor.execute(f"PRAGMA foreign_key_list({name})")
+    fks = [dict(f) for f in cursor.fetchall()]
+    fk_map = {f['from']: {"table": f['table'], "to": f['to']} for f in fks}
+
+    columns = [
+        {
+            "name": c['name'],
+            "type": c['type'],
+            "pk": c['pk'],
+            "fk": fk_map.get(c['name'])
+        }
+        for c in cols
+    ]
+
+    # Determine PK column for ordering
+    pk_col = next((c['name'] for c in cols if c['pk'] > 0), None)
+    order_clause = f'ORDER BY "{pk_col}" DESC' if pk_col else ''
+
+    # Query params
+    try:
+        limit = int(request.args.get('limit', 100))
+        limit = max(1, min(limit, 500))
+    except (ValueError, TypeError):
+        limit = 100
+
+    try:
+        offset = int(request.args.get('offset', 0))
+        offset = max(0, offset)
+    except (ValueError, TypeError):
+        offset = 0
+
+    q = request.args.get('q', '').strip()
+
+    start_time = time.perf_counter()
+
+    if q:
+        col_names = [c['name'] for c in cols]
+        conditions = " OR ".join([f'CAST("{col}" AS TEXT) LIKE ?' for col in col_names])
+        params = [f"%{q}%"] * len(col_names)
+
+        count_query = f'SELECT COUNT(*) FROM "{name}" WHERE {conditions}'
+        cursor.execute(count_query, params)
+        total = cursor.fetchone()[0]
+
+        select_query = f'SELECT * FROM "{name}" WHERE {conditions} {order_clause} LIMIT ? OFFSET ?'
+        cursor.execute(select_query, params + [limit, offset])
+        rows = [dict(r) for r in cursor.fetchall()]
+        executed_sql = f'SELECT * FROM {name} WHERE ({conditions.replace("?", repr(f"%{q}%"))}) {order_clause} LIMIT {limit} OFFSET {offset}'.strip()
+    else:
+        cursor.execute(f'SELECT COUNT(*) FROM "{name}"')
+        total = cursor.fetchone()[0]
+
+        select_query = f'SELECT * FROM "{name}" {order_clause} LIMIT ? OFFSET ?'
+        cursor.execute(select_query, (limit, offset))
+        rows = [dict(r) for r in cursor.fetchall()]
+        offset_str = f' OFFSET {offset}' if offset > 0 else ''
+        executed_sql = f'SELECT * FROM {name} {order_clause} LIMIT {limit}{offset_str}'.strip()
+
+    ms = round((time.perf_counter() - start_time) * 1000, 2)
+
+    return jsonify({
+        "status": "success",
+        "table": name,
+        "columns": columns,
+        "rows": rows,
+        "total": total,
+        "sql": executed_sql,
+        "ms": ms
+    })
+
+
+# --------------------------------------------------------------------
+# REST API: SERVER-SENT EVENTS (SSE) STREAM
+# --------------------------------------------------------------------
+@app.route('/api/stream', methods=['GET'])
+def sse_stream():
+    """
+    Server-Sent Events endpoint streaming database mutation events:
+    data: {"table": "...", "action": "INSERT|UPDATE|DELETE", "row_id": ...}
+    """
+    def event_stream():
+        q = queue.Queue(maxsize=100)
+        with sse_lock:
+            sse_subscribers.append(q)
+        try:
+            yield ": connected\n\n"
+            while True:
+                try:
+                    data = q.get(timeout=15)
+                    yield f"data: {data}\n\n"
+                except queue.Empty:
+                    yield ": keepalive\n\n"
+        except GeneratorExit:
+            pass
+        finally:
+            with sse_lock:
+                if q in sse_subscribers:
+                    sse_subscribers.remove(q)
+
+    return Response(
+        event_stream(),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive"
+        }
+    )
+
+
+# --------------------------------------------------------------------
 # REST API: ASK THE DATABASE (SELECT ONLY)
 # --------------------------------------------------------------------
 @app.route('/api/sql', methods=['POST'])
@@ -1133,6 +1414,7 @@ def run_sql():
 def reset_database():
     try:
         init_db(force=True)
+        broadcast_sse("all", "RESET", None)
         return jsonify({
             "status": "success",
             "message": "Database successfully reset to initial clean seed data."
@@ -1182,4 +1464,4 @@ def get_stats():
 
 if __name__ == '__main__':
     init_db(force=False)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
